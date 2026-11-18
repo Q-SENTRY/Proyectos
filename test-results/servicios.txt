@@ -1,12 +1,12 @@
 ACTIVITY MANAGER SERVICES (dumpsys activity services)
   User 0 active services:
-  * ServiceRecord{8a9ebf1 u0 com.qsentry.reproductor/io.github.jofr.capacitor.mediasessionplugin.MediaSessionService}
+  * ServiceRecord{7f01e2d u0 com.qsentry.reproductor/io.github.jofr.capacitor.mediasessionplugin.MediaSessionService}
     intent={cmp=com.qsentry.reproductor/io.github.jofr.capacitor.mediasessionplugin.MediaSessionService}
     packageName=com.qsentry.reproductor
     processName=com.qsentry.reproductor
-    baseDir=/data/app/~~V6H_d1mOxJ-nYA12MMjT6w==/com.qsentry.reproductor-kCIn1ENleHEdoyjd6m_XxA==/base.apk
+    baseDir=/data/app/~~b8fnyNwyEHqvI_abQnwpug==/com.qsentry.reproductor-cs8emvz4UkomuBJsWD5nGg==/base.apk
     dataDir=/data/user/0/com.qsentry.reproductor
-    app=ProcessRecord{b1cd7c8 6630:com.qsentry.reproductor/u0a174}
+    app=ProcessRecord{fc54b62 6232:com.qsentry.reproductor/u0a174}
     allowWhileInUsePermissionInFgs=true
     recentCallingPackage=com.qsentry.reproductor
     recentCallingUid=10174
@@ -14,57 +14,57 @@ ACTIVITY MANAGER SERVICES (dumpsys activity services)
     startForegroundCount=1
     infoAllowStartForeground=[callingPackage: com.qsentry.reproductor; callingUid: 10174; uidState: TOP ; intent: Intent { cmp=com.qsentry.reproductor/io.github.jofr.capacitor.mediasessionplugin.MediaSessionService }; code:PROC_STATE_TOP; tempAllowListReason:<null>; targetSdkVersion:34; callerTargetSdkVersion:34; startForegroundCount:0; bindFromPackage:null]
     isForeground=true foregroundId=1 foregroundNoti=Notification(channel=playback shortcut=null contentView=null vibrate=null sound=null defaults=0x0 flags=0x60 color=0x00000000 category=transport actions=6 vis=PUBLIC)
-    createTime=-30s689ms startingBgTimeout=--
-    lastActivity=-30s684ms restartTime=-30s686ms createdFromFg=true
+    createTime=-31s662ms startingBgTimeout=--
+    lastActivity=-31s652ms restartTime=-31s662ms createdFromFg=true
     startRequested=true delayedStop=false stopIfKilled=false callStart=true lastStartId=1
     Bindings:
-    * IntentBindRecord{ff8525c CREATE}:
+    * IntentBindRecord{da25f1e CREATE}:
       intent={cmp=com.qsentry.reproductor/io.github.jofr.capacitor.mediasessionplugin.MediaSessionService}
-      binder=android.os.BinderProxy@4fb4965
+      binder=android.os.BinderProxy@651d3ff
       requested=true received=true hasBound=true doRebind=false
-      * Client AppBindRecord{879363a ProcessRecord{b1cd7c8 6630:com.qsentry.reproductor/u0a174}}
+      * Client AppBindRecord{5a925cc ProcessRecord{fc54b62 6232:com.qsentry.reproductor/u0a174}}
         Per-process Connections:
-          ConnectionRecord{519f544 u0 CR com.qsentry.reproductor/io.github.jofr.capacitor.mediasessionplugin.MediaSessionService:@9fed657}
+          ConnectionRecord{5eb89b0 u0 CR com.qsentry.reproductor/io.github.jofr.capacitor.mediasessionplugin.MediaSessionService:@9f988f3}
     All Connections:
-      ConnectionRecord{519f544 u0 CR com.qsentry.reproductor/io.github.jofr.capacitor.mediasessionplugin.MediaSessionService:@9fed657}
+      ConnectionRecord{5eb89b0 u0 CR com.qsentry.reproductor/io.github.jofr.capacitor.mediasessionplugin.MediaSessionService:@9f988f3}
 
-  * ServiceRecord{1aee07a u0 com.qsentry.reproductor/org.chromium.content.app.SandboxedProcessService0:0}
+  * ServiceRecord{93de4a6 u0 com.qsentry.reproductor/org.chromium.content.app.SandboxedProcessService0:0}
     intent={cmp=com.qsentry.reproductor/org.chromium.content.app.SandboxedProcessService0:0}
     packageName=com.qsentry.reproductor
     processName=com.google.android.webview:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0
-    baseDir=/data/app/~~7oRKikz1l05-0Atbdl3J8Q==/com.google.android.webview-ZlBhh9UmtY7L_i3eVfDK4w==/WebViewGoogle.apk
+    baseDir=/data/app/~~Gl-Cln2fsPc_KNZt_CjnCA==/com.google.android.webview-EqAIrkOjQr1acaDFbO6Ouw==/WebViewGoogle.apk
     dataDir=/data/user/0/com.google.android.webview
-    app=ProcessRecord{a97b704 6659:com.google.android.webview:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0/u0a174i0}
-    isolationHostProc=ProcessRecord{a97b704 6659:com.google.android.webview:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0/u0a174i0}
+    app=ProcessRecord{9b6c77d 6279:com.google.android.webview:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0/u0a174i0}
+    isolationHostProc=ProcessRecord{9b6c77d 6279:com.google.android.webview:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0/u0a174i0}
     allowWhileInUsePermissionInFgs=true
     recentCallingPackage=com.qsentry.reproductor
     recentCallingUid=10174
     allowStartForeground=PROC_STATE_TOP
     startForegroundCount=0
     infoAllowStartForeground=[callingPackage: com.qsentry.reproductor; callingUid: 10174; uidState: TOP ; intent: Intent { cmp=com.qsentry.reproductor/org.chromium.content.app.SandboxedProcessService0:0 (has extras) }; code:PROC_STATE_TOP; tempAllowListReason:<null>; targetSdkVersion:33; callerTargetSdkVersion:34; startForegroundCount:0; bindFromPackage:null]
-    createTime=-55s549ms startingBgTimeout=--
-    lastActivity=-55s213ms restartTime=-55s514ms createdFromFg=true
+    createTime=-57s660ms startingBgTimeout=--
+    lastActivity=-57s56ms restartTime=-57s436ms createdFromFg=true
     Bindings:
-    * IntentBindRecord{4fdf2eb CREATE}:
+    * IntentBindRecord{a517015 CREATE}:
       intent={cmp=com.qsentry.reproductor/org.chromium.content.app.SandboxedProcessService0:0}
-      binder=android.os.BinderProxy@ce63848
+      binder=android.os.BinderProxy@a114f2a
       requested=true received=true hasBound=true doRebind=false
-      * Client AppBindRecord{2dc16e1 ProcessRecord{b1cd7c8 6630:com.qsentry.reproductor/u0a174}}
+      * Client AppBindRecord{3f9b11b ProcessRecord{fc54b62 6232:com.qsentry.reproductor/u0a174}}
         Per-process Connections:
-          ConnectionRecord{3bdabe1 u0 CR IMP com.qsentry.reproductor/org.chromium.content.app.SandboxedProcessService0:0:@6ad0148}
-          ConnectionRecord{8b68f22 u0 CR WPRI com.qsentry.reproductor/org.chromium.content.app.SandboxedProcessService0:0:@d7454ed}
+          ConnectionRecord{a26f776 u0 CR IMP com.qsentry.reproductor/org.chromium.content.app.SandboxedProcessService0:0:@b469a11}
+          ConnectionRecord{af047be u0 CR WPRI com.qsentry.reproductor/org.chromium.content.app.SandboxedProcessService0:0:@b6d5e79}
     All Connections:
-      ConnectionRecord{3bdabe1 u0 CR IMP com.qsentry.reproductor/org.chromium.content.app.SandboxedProcessService0:0:@6ad0148}
-      ConnectionRecord{8b68f22 u0 CR WPRI com.qsentry.reproductor/org.chromium.content.app.SandboxedProcessService0:0:@d7454ed}
+      ConnectionRecord{a26f776 u0 CR IMP com.qsentry.reproductor/org.chromium.content.app.SandboxedProcessService0:0:@b469a11}
+      ConnectionRecord{af047be u0 CR WPRI com.qsentry.reproductor/org.chromium.content.app.SandboxedProcessService0:0:@b6d5e79}
 
   Connection bindings to services:
-  * ConnectionRecord{3bdabe1 u0 CR IMP com.qsentry.reproductor/org.chromium.content.app.SandboxedProcessService0:0:@6ad0148}
-    binding=AppBindRecord{2dc16e1 com.qsentry.reproductor/org.chromium.content.app.SandboxedProcessService0:0:com.qsentry.reproductor}
-    conn=android.os.BinderProxy@6ad0148 flags=0x80000041
-  * ConnectionRecord{519f544 u0 CR com.qsentry.reproductor/io.github.jofr.capacitor.mediasessionplugin.MediaSessionService:@9fed657}
-    binding=AppBindRecord{879363a com.qsentry.reproductor/io.github.jofr.capacitor.mediasessionplugin.MediaSessionService:com.qsentry.reproductor}
-    activity=ActivityRecord{99be9ba u0 com.qsentry.reproductor/.MainActivity} t9}
-    conn=android.os.BinderProxy@9fed657 flags=0x1
-  * ConnectionRecord{8b68f22 u0 CR WPRI com.qsentry.reproductor/org.chromium.content.app.SandboxedProcessService0:0:@d7454ed}
-    binding=AppBindRecord{2dc16e1 com.qsentry.reproductor/org.chromium.content.app.SandboxedProcessService0:0:com.qsentry.reproductor}
-    conn=android.os.BinderProxy@d7454ed flags=0x80000021
+  * ConnectionRecord{5eb89b0 u0 CR com.qsentry.reproductor/io.github.jofr.capacitor.mediasessionplugin.MediaSessionService:@9f988f3}
+    binding=AppBindRecord{5a925cc com.qsentry.reproductor/io.github.jofr.capacitor.mediasessionplugin.MediaSessionService:com.qsentry.reproductor}
+    activity=ActivityRecord{86c4b98 u0 com.qsentry.reproductor/.MainActivity} t9}
+    conn=android.os.BinderProxy@9f988f3 flags=0x1
+  * ConnectionRecord{a26f776 u0 CR IMP com.qsentry.reproductor/org.chromium.content.app.SandboxedProcessService0:0:@b469a11}
+    binding=AppBindRecord{3f9b11b com.qsentry.reproductor/org.chromium.content.app.SandboxedProcessService0:0:com.qsentry.reproductor}
+    conn=android.os.BinderProxy@b469a11 flags=0x80000041
+  * ConnectionRecord{af047be u0 CR WPRI com.qsentry.reproductor/org.chromium.content.app.SandboxedProcessService0:0:@b6d5e79}
+    binding=AppBindRecord{3f9b11b com.qsentry.reproductor/org.chromium.content.app.SandboxedProcessService0:0:com.qsentry.reproductor}
+    conn=android.os.BinderProxy@b6d5e79 flags=0x80000021

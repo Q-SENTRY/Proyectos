@@ -7,5 +7,5 @@ OK auriculares doble toque = siguiente
 OK auriculares triple toque = anterior
 OK transición suave entre canciones
 OK visualizador sin errores
-REVISAR widget
+OK widget registrado y actualizándose
 OK sin crashes
