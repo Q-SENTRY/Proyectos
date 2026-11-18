@@ -170,6 +170,28 @@ body:not(.paused) .mini .art{animation:breathe 2.4s ease-in-out infinite}
 .player.dragging{transition:none}
 .sheet .opt{animation:rise .35s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0)*30ms)}
 
+/* ---- v4: escaneo, artistas, orden, carátulas ---- */
+.art{overflow:hidden;background-size:cover;background-position:center}
+.art img,.cover img{width:100%;height:100%;object-fit:cover;display:block;animation:fadein .4s}
+@keyframes fadein{from{opacity:0}}
+.cover{overflow:hidden}.cover img{position:absolute;inset:0;border-radius:inherit}
+.scan{display:flex;align-items:center;gap:14px;margin-top:18px;padding:16px;border-radius:18px;background:var(--fg);color:var(--bg);width:100%;text-align:left;animation:rise .5s .15s cubic-bezier(.2,.8,.2,1) both}
+.scan .ic{width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.14);display:grid;place-items:center;flex-shrink:0}
+.scan b{display:block;font-size:15px}.scan small{opacity:.7;font-size:12.5px}
+.scan.busy .ic svg{animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.artists{display:flex;gap:14px;overflow-x:auto;margin:0 -20px;padding:2px 20px 6px;scrollbar-width:none}
+.artists::-webkit-scrollbar{display:none}
+.artist{flex-shrink:0;width:72px;text-align:center;animation:pop .45s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0)*40ms)}
+.artist .av{width:64px;height:64px;margin:0 auto 6px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:20px;color:rgba(22,22,22,.55);transition:transform .2s,box-shadow .2s}
+.artist.sel .av{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--fg);transform:scale(1.04)}
+.artist span{font-size:12px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chips{display:flex;gap:6px}
+.chips button{font-size:12px;letter-spacing:0;text-transform:none;padding:6px 12px;border-radius:999px;color:var(--mute);background:transparent;transition:background .2s,color .2s}
+.chips button.sel{background:var(--fg);color:var(--bg)}
+.dur{font-size:12px;color:var(--mute);font-variant-numeric:tabular-nums}
+.song.active .dur{display:none}
+.hello{font-size:13px;color:var(--mute)}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 </style>
 </head>
@@ -178,15 +200,20 @@ body:not(.paused) .mini .art{animation:breathe 2.4s ease-in-out infinite}
 <!-- Biblioteca -->
 <section class="view" id="vHome">
   <div class="top">
-    <span style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)">Biblioteca</span>
-    <button class="ib" id="addHome" title="Añadir canciones"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+    <span class="hello" id="hello">Hola</span>
+    <div style="display:flex;margin-right:-10px">
+      <button class="ib" id="rescan" title="Buscar música en el teléfono" style="display:none"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg></button>
+      <button class="ib" id="addHome" title="Añadir canciones"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+    </div>
   </div>
   <h1>Tu música</h1>
   <div class="sub" id="stats">0 canciones</div>
+  <button class="scan" id="scanCard" style="display:none"><div class="ic"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5M8 11h6M11 8v6"/></svg></div><div><b id="scanT">Encontrar mi música</b><small id="scanS">Detecta las canciones guardadas en tu teléfono</small></div></button>
   <div class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" placeholder="Buscar canciones o artistas"></div>
+  <div id="artistBox"><div class="label"><span>Artistas</span></div><div class="artists" id="artists"></div></div>
   <div class="label"><span>Carpetas</span></div>
   <div class="grid" id="folders"></div>
-  <div class="label"><span id="recentLabel">Todas las canciones</span></div>
+  <div class="label"><span id="recentLabel">Canciones</span><div class="chips" id="sort"><button data-s="az" class="sel">A–Z</button><button data-s="recent">Recientes</button><button data-s="artist">Artista</button></div></div>
   <div id="allSongs"></div>
 </section>
 
@@ -273,7 +300,27 @@ let songs = [], folders = [];
 let queue = [], qi = -1, current = null, urls = new Map();
 let shuffle = false, repeat = false, openFolder = null, addTarget = null, query = '';
 
-const urlFor = s => { if (!urls.has(s.id)) urls.set(s.id, URL.createObjectURL(s.blob)); return urls.get(s.id); };
+const urlFor = s => {
+  if (s.uri) return window.Capacitor.convertFileSrc(s.uri);
+  if (!urls.has(s.id)) urls.set(s.id, URL.createObjectURL(s.blob)); return urls.get(s.id);
+};
+const artHTML = s => s.art ? `<img src="${s.art}" alt="">` : esc(initials(s));
+const fmtMs = ms => ms ? fmt(ms/1000) : '';
+let sortMode = 'az', artistSel = null;
+try { sortMode = localStorage.getItem('sort') || 'az'; } catch {}
+function sorted(list){
+  const l = list.slice();
+  if (sortMode === 'az') l.sort((a,b) => a.title.localeCompare(b.title, 'es', {sensitivity:'base'}));
+  if (sortMode === 'recent') l.sort((a,b) => b.added - a.added);
+  if (sortMode === 'artist') l.sort((a,b) => a.artist.localeCompare(b.artist,'es') || a.title.localeCompare(b.title,'es'));
+  return l;
+}
+function visibleSongs(){
+  let l = songs;
+  if (artistSel) l = l.filter(s => s.artist === artistSel);
+  if (query) l = l.filter(s => (s.title+' '+s.artist+' '+(s.album||'')).toLowerCase().includes(query));
+  return sorted(l);
+}
 const folderOf = id => folders.find(f => f.id === id);
 const inFolder = fid => fid === '__all' ? songs : songs.filter(s => s.folder === fid);
 
@@ -281,9 +328,9 @@ const inFolder = fid => fid === '__all' ? songs : songs.filter(s => s.folder ===
 function songRow(s,i=0){
   const active = current && current.id === s.id;
   return `<div class="song${active?' active':''}" data-id="${s.id}" style="--i:${Math.min(i,14)}">
-    <div class="art" style="background:${songColor(s)}">${esc(initials(s))}</div>
+    <div class="art" data-art="${s.id}" style="background:${songColor(s)}">${artHTML(s)}</div>
     <div class="info"><div class="t">${esc(s.title)}</div><div class="a">${esc(s.artist)}${s.folder && !openFolder ? ' · '+esc(folderOf(s.folder)?.name||'') : ''}</div></div>
-    <span class="eq"><i></i><i></i><i></i></span>
+    <span class="dur">${fmtMs(s.duration)}</span><span class="eq"><i></i><i></i><i></i></span>
     <button class="ib more" data-more="${s.id}"><svg viewBox="0 0 24 24" class="f"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg></button>
   </div>`;
 }
@@ -295,10 +342,19 @@ function render(){
     `<button class="folder" data-folder="__all" style="background:#d9d6cf"><div class="fi"><svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div><div><b>Todas</b><small>${songs.length} canciones</small></div></button>` +
     folders.map((f,i) => `<button class="folder" data-folder="${f.id}" style="background:${f.color};--i:${i+1}"><div class="fi">${ICON_FOLDER}</div><div><b>${esc(f.name)}</b><small>${inFolder(f.id).length} canciones</small></div></button>`).join('') +
     `<button class="folder new" id="newFolder" style="--i:${folders.length+1}"><div class="fi"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></div><b style="font-size:14px">Nueva carpeta</b></button>`;
-  const list = query ? songs.filter(s => (s.title+' '+s.artist).toLowerCase().includes(query)) : songs;
-  $('recentLabel').textContent = query ? `Resultados (${list.length})` : 'Todas las canciones';
+  const h = new Date().getHours();
+  $('hello').textContent = h < 6 ? 'Buenas noches' : h < 12 ? 'Buenos días' : h < 20 ? 'Buenas tardes' : 'Buenas noches';
+  const byArtist = {};
+  songs.forEach(s => { if (s.artist !== 'Artista desconocido') (byArtist[s.artist] = byArtist[s.artist] || []).push(s); });
+  const arts = Object.keys(byArtist).sort((a,b) => byArtist[b].length - byArtist[a].length).slice(0, 20);
+  $('artistBox').style.display = arts.length > 1 ? '' : 'none';
+  $('artists').innerHTML = arts.map((a,i) => `<button class="artist${artistSel===a?' sel':''}" data-artist="${esc(a)}" style="--i:${i}"><div class="av" style="background:${songColor({artist:a,title:''})}">${esc((a.match(/[\p{L}\p{N}]/u)||['♪'])[0].toUpperCase())}</div><span>${esc(a)}</span></button>`).join('');
+  document.querySelectorAll('#sort button').forEach(b => b.classList.toggle('sel', b.dataset.s === sortMode));
+  const list = visibleSongs();
+  $('recentLabel').textContent = query || artistSel ? `${artistSel || 'Resultados'} (${list.length})` : `Canciones (${list.length})`;
   $('allSongs').innerHTML = list.length ? list.map((s,i)=>songRow(s,i)).join('') : (query ? '<div class="empty">Sin resultados</div>' : emptyBox('Aún no tienes música'));
   if (openFolder) renderFolder();
+  loadArtworks();
 }
 function renderFolder(){
   const isAll = openFolder === '__all';
@@ -308,16 +364,16 @@ function renderFolder(){
   $('fName').textContent = isAll ? 'Todas' : f.name;
   $('fStats').textContent = `${list.length} ${list.length===1?'canción':'canciones'}`;
   $('folderMore').style.visibility = isAll ? 'hidden' : 'visible';
-  $('fSongs').innerHTML = list.length ? list.map((s,i)=>songRow(s,i)).join('') : emptyBox('Esta carpeta está vacía');
+  $('fSongs').innerHTML = list.length ? sorted(list).map((s,i)=>songRow(s,i)).join('') : emptyBox('Esta carpeta está vacía');
 }
 function renderNow(){
   if (!current) { $('mini').classList.remove('show'); return; }
   const s = current, c = songColor(s), f = folderOf(s.folder);
   $('mini').classList.add('show');
-  $('mArt').style.background = c; $('mArt').textContent = initials(s);
+  $('mArt').style.background = c; $('mArt').innerHTML = artHTML(s);
   $('mT').textContent = s.title; $('mA').textContent = s.artist;
   $('pT').textContent = s.title; $('pA').textContent = s.artist;
-  $('cover').style.background = c; $('cBig').textContent = initials(s); $('glow').style.background = `radial-gradient(circle at 50% 30%, ${c}, transparent 60%)`;
+  $('cover').style.background = c; $('cBig').textContent = s.art ? '' : initials(s); $('cover').querySelector('img')?.remove(); if (s.art) $('cover').insertAdjacentHTML('afterbegin', `<img src="${s.art}" alt="">`); $('glow').style.background = `radial-gradient(circle at 50% 30%, ${c}, transparent 60%)`;
   $('pFolderName').textContent = f ? f.name : 'Sin carpeta';
   document.querySelectorAll('.song').forEach(el => el.classList.toggle('active', el.dataset.id === s.id));
 }
@@ -335,11 +391,15 @@ document.addEventListener('click', e => {
   if (more) { e.stopPropagation(); return songSheet(songs.find(s => s.id === more.dataset.more)); }
   if (e.target.closest('[data-add]')) return pickFiles(openFolder && openFolder !== '__all' ? openFolder : null);
   if (e.target.closest('#newFolder')) return folderSheet();
+  const ar = e.target.closest('[data-artist]');
+  if (ar) { artistSel = artistSel === ar.dataset.artist ? null : ar.dataset.artist; return render(); }
+  const so = e.target.closest('[data-s]');
+  if (so) { sortMode = so.dataset.s; try { localStorage.setItem('sort', sortMode); } catch {} render(); animate($('vHome')); return; }
   const fo = e.target.closest('[data-folder]');
   if (fo) return showFolder(fo.dataset.folder);
   const row = e.target.closest('.song');
   if (row) {
-    const ctx = row.closest('#fSongs') ? inFolder(openFolder) : (query ? songs.filter(s => (s.title+' '+s.artist).toLowerCase().includes(query)) : songs);
+    const ctx = row.closest('#fSongs') ? sorted(inFolder(openFolder)) : visibleSongs();
     playList(ctx, ctx.findIndex(s => s.id === row.dataset.id));
   }
 });
@@ -406,7 +466,7 @@ function songSheet(s){
     <button class="opt" data-a="next"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h7M17 15v6M14 18h6"/></svg>Reproducir a continuación</button>
     <button class="opt" data-a="move">${ICON_FOLDER}Mover a carpeta</button>
     <button class="opt" data-a="rename"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>Renombrar</button>
-    <button class="opt danger" data-a="del"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>Eliminar de la biblioteca</button>`);
+    <button class="opt danger" data-a="del"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>${s.uri ? 'Ocultar de la biblioteca' : 'Eliminar de la biblioteca'}</button>`);
   $('sheet').onclick = async e => {
     const b = e.target.closest('[data-a]'); if (!b) return;
     $('sheet').onclick = null;
@@ -416,7 +476,8 @@ function songSheet(s){
     if (a === 'move') moveSheet(s);
     if (a === 'rename') renameSheet(s);
     if (a === 'del') {
-      await del('songs', s.id); songs = songs.filter(x => x.id !== s.id);
+      if (s.uri) { s.hidden = true; await put('songs', s); } else await del('songs', s.id);
+      songs = songs.filter(x => x.id !== s.id);
       queue = queue.filter(x => x.id !== s.id);
       if (current && current.id === s.id) { audio.pause(); audio.removeAttribute('src'); current = null; renderNow(); }
       closeSheet(); render(); toast('Canción eliminada');
@@ -514,7 +575,7 @@ function prev(){
 }
 $('play').onclick = toggle; $('mPlay').onclick = toggle;
 $('next').onclick = next; $('mNext').onclick = next; $('prev').onclick = prev;
-$('fPlay').onclick = () => playList(inFolder(openFolder), 0);
+$('fPlay').onclick = () => playList(sorted(inFolder(openFolder)), 0);
 $('fShuffle').onclick = () => playList(inFolder(openFolder), 0, true);
 $('shuffle').onclick = e => { shuffle = !shuffle; e.currentTarget.className = 'ib ' + (shuffle?'on':'off'); toast(shuffle?'Aleatorio activado':'Aleatorio desactivado'); };
 $('repeat').onclick = e => { repeat = !repeat; e.currentTarget.className = 'ib ' + (repeat?'on':'off'); toast(repeat?'Repetir canción':'Repetir desactivado'); };
@@ -523,6 +584,8 @@ const setIcons = p => document.querySelectorAll('.pi').forEach(el => { el.classL
 audio.onplay = () => { setIcons(true); document.body.classList.remove('paused'); native.state('playing'); };
 audio.onpause = () => { setIcons(false); document.body.classList.add('paused'); native.state('paused'); };
 audio.onended = () => { if (repeat) { audio.currentTime = 0; audio.play(); } else if (qi < queue.length-1 || shuffle) next(); };
+audio.onplaying = () => console.log('REP play', current && current.title, audio.src.slice(0,60));
+audio.onerror = () => { console.log('REP audio-error', audio.error && audio.error.code, audio.src.slice(0,80)); if (current) toast('No se pudo reproducir esta canción'); };
 audio.onloadedmetadata = () => { $('dur').textContent = fmt(audio.duration); native.pos(); };
 audio.onseeked = () => native.pos();
 audio.ontimeupdate = () => {
@@ -615,10 +678,79 @@ window.addEventListener('popstate', () => {
 let tt;
 function toast(m){ $('toast').textContent = m; $('toast').classList.add('show'); clearTimeout(tt); tt = setTimeout(() => $('toast').classList.remove('show'), 1800); }
 
+/* ---------- Música del teléfono ---------- */
+const Lib = window.Capacitor?.isNativePlatform?.() ? window.Capacitor.registerPlugin('MusicLibrary') : null;
+let hiddenIds = new Set(), scanning = false;
+async function scanDevice(interactive){
+  if (!Lib || scanning) return;
+  scanning = true; $('scanCard').classList.add('busy'); $('scanT').textContent = 'Buscando música…'; $('scanS').textContent = 'Revisando tu teléfono';
+  try {
+    const r = await Lib.scan();
+    if (!r.granted) { if (interactive) toast('Necesito permiso para ver tu música'); return; }
+    const found = new Map(r.songs.map(d => ['dev:'+d.id, d]));
+    let added = 0;
+    for (const [id, d] of found) {
+      if (hiddenIds.has(id)) continue;
+      const ex = songs.find(s => s.id === id);
+      if (ex) { if (ex.uri !== d.uri) { ex.uri = d.uri; await put('songs', ex); } continue; }
+      const s = {id, title:d.title || 'Sin título', artist:d.artist || 'Artista desconocido', album:d.album || '', albumId:d.albumId, duration:d.duration, uri:d.uri, folder:null, added:(d.added||0)*1000};
+      await put('songs', s); songs.push(s); added++;
+    }
+    for (const s of songs.filter(s => s.uri && !found.has(s.id))) await del('songs', s.id);
+    songs = songs.filter(s => !s.uri || found.has(s.id));
+    console.log('REP scan ' + found.size + ' canciones, nuevas ' + added);
+    try { localStorage.setItem('scanned', '1'); } catch {}
+    render(); animate($('vHome'));
+    if (interactive || added) toast(added ? `${added} ${added===1?'canción encontrada':'canciones encontradas'}` : 'Tu biblioteca está al día');
+  } catch (e) { console.log('REP scan-error ' + e.message); toast('No se pudo leer la música'); }
+  finally { scanning = false; $('scanCard').classList.remove('busy'); updateScanCard(); }
+}
+function updateScanCard(){
+  if (!Lib) return;
+  const has = songs.some(s => s.uri);
+  $('rescan').style.display = has ? '' : 'none';
+  $('scanCard').style.display = has ? 'none' : '';
+  $('scanT').textContent = 'Encontrar mi música'; $('scanS').textContent = 'Detecta las canciones guardadas en tu teléfono';
+}
+$('scanCard').onclick = () => scanDevice(true);
+$('rescan').onclick = () => scanDevice(true);
+
+/* Carátulas reales (se cargan poco a poco y se guardan) */
+let artBusy = false;
+async function loadArtworks(){
+  if (!Lib || artBusy) return; artBusy = true;
+  try {
+    for (const s of songs) {
+      if (!s.uri || s.art !== undefined) continue;
+      let data = null;
+      try { data = (await Lib.artwork({uri:s.uri, albumId:s.albumId})).data || null; } catch {}
+      s.art = data; await put('songs', s);
+      if (data) {
+        document.querySelectorAll(`[data-art="${s.id}"]`).forEach(el => el.innerHTML = `<img src="${data}" alt="">`);
+        if (current && current.id === s.id) { renderNow(); native.meta(s); }
+      }
+    }
+  } finally { artBusy = false; }
+}
+const _artwork = artwork;
+artwork = s => s.art || _artwork(s);
+
 (async () => {
-  try { db = await openDB(); [songs, folders] = await Promise.all([all('songs'), all('folders')]); songs.sort((a,b)=>a.added-b.added); folders.sort((a,b)=>a.created-b.created); }
-  catch { toast('No se pudo abrir el almacenamiento'); }
-  render();
+  try {
+    db = await openDB();
+    let all_; [all_, folders] = await Promise.all([all('songs'), all('folders')]);
+    hiddenIds = new Set(all_.filter(s => s.hidden).map(s => s.id));
+    songs = all_.filter(s => !s.hidden);
+    folders.sort((a,b)=>a.created-b.created);
+  } catch { toast('No se pudo abrir el almacenamiento'); }
+  render(); updateScanCard();
+  if (Lib) {
+    try {
+      const st = await Lib.status();
+      if (st.granted) scanDevice(false);
+      else { let asked = null; try { asked = localStorage.getItem('scanned'); } catch {} if (!asked && !songs.length) setTimeout(() => scanDevice(true), 600); }
+    } catch {}
+  }
 })();
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js');
 </script>
