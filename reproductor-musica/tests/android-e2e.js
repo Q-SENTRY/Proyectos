@@ -50,6 +50,19 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     for (const t of ['Allow', 'Permitir', 'ALLOW']) {
       try { await device.tap({ text: t }, { timeout: 3000 }); tapped = true; break; } catch {}
     }
+    if (!tapped) {
+      // Respaldo: buscar el botón con uiautomator y tocar sus coordenadas
+      const { execSync } = require('child_process');
+      for (let k = 0; k < 3 && !tapped; k++) {
+        try {
+          execSync('adb shell uiautomator dump /sdcard/dlg.xml');
+          const xml = execSync('adb shell cat /sdcard/dlg.xml').toString();
+          const m = xml.match(/text="(?:Allow|Permitir|ALLOW)"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/);
+          if (m) { execSync(`adb shell input tap ${(+m[1] + +m[3]) >> 1} ${(+m[2] + +m[4]) >> 1}`); tapped = true; }
+        } catch (e) { console.log('uiautomator: ' + e.message.split('\n')[0]); }
+        if (!tapped) await sleep(1500);
+      }
+    }
     ok('diálogo de Android para confirmar el borrado', tapped);
     await sleep(3000);
     const after = await page.$$eval('#lSongs .song .t', e => e.map(x => x.textContent)).catch(() => []);
