@@ -4,7 +4,10 @@ set -x
 OUT=test-results; rm -rf $OUT; mkdir -p $OUT
 PKG=com.qsentry.reproductor
 shot(){ adb exec-out screencap -p > "$OUT/$1.png"; }
-adb wait-for-device; sleep 5
+adb wait-for-device
+until [ "$(adb shell getprop sys.boot_completed | tr -d '\r')" = 1 ]; do sleep 3; done
+sleep 60  # dejar que los servicios de Google terminen de arrancar
+front(){ adb shell dumpsys activity activities | grep -q "topResumedActivity.*$PKG" || { echo 'Relanzando app'; adb shell am start -W -n $PKG/.MainActivity; sleep 12; }; }
 adb install -r reproductor-musica/android/app/build/outputs/apk/debug/app-debug.apk
 python3 reproductor-musica/tests/make_audio.py /tmp/musica
 adb shell mkdir -p /sdcard/Music
@@ -23,9 +26,11 @@ adb shell uiautomator dump /sdcard/ui.xml && adb pull /sdcard/ui.xml $OUT/ui.xml
 read W H < <(adb shell wm size | grep -o '[0-9]*x[0-9]*' | tail -1 | tr x ' ')
 echo "Pantalla: ${W}x${H}"
 # Primera canción de la lista (coordenadas relativas medidas en la captura)
+front
 adb shell input tap $(( W * 40 / 100 )) $(( H * 829 / 1000 ))
 sleep 5
 shot 2-reproduciendo-mini
+front
 adb shell input tap $(( W * 40 / 100 )) $(( H * 950 / 1000 ))
 sleep 3
 shot 3-reproductor
