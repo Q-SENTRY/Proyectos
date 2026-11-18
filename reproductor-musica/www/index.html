@@ -2,150 +2,485 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#f5f4f0">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#f4f2ee">
 <title>Reproductor</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <style>
-:root{--bg:#f5f4f0;--fg:#1a1a1a;--mute:#8a8780;--line:#e2e0da;--card:#ebe9e3}
-@media (prefers-color-scheme:dark){:root{--bg:#121212;--fg:#ededeb;--mute:#77756f;--line:#262624;--card:#1c1c1b}}
+:root{--bg:#f4f2ee;--fg:#161616;--mute:#8b8880;--line:#e4e1da;--card:#ffffff;--soft:#ebe8e1;--shadow:0 10px 30px rgba(0,0,0,.08)}
+@media (prefers-color-scheme:dark){:root{--bg:#0f0f0f;--fg:#efeeea;--mute:#7c7a74;--line:#232322;--card:#1a1a19;--soft:#222220;--shadow:0 10px 30px rgba(0,0,0,.5)}}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%}
-body{background:var(--bg);color:var(--fg);font:15px/1.4 -apple-system,BlinkMacSystemFont,"Inter","Segoe UI",sans-serif;display:flex;justify-content:center}
-.app{width:100%;max-width:440px;min-height:100%;display:flex;flex-direction:column;padding:calc(20px + env(safe-area-inset-top)) 24px calc(24px + env(safe-area-inset-bottom))}
-header{display:flex;justify-content:space-between;align-items:center;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
-button{background:none;border:0;color:inherit;cursor:pointer;font:inherit}
-.icon{width:44px;height:44px;display:grid;place-items:center;border-radius:50%}
-.icon svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
-.icon.on{color:var(--fg)} .icon.off{color:var(--mute)}
-.cover{margin:36px auto 0;width:100%;aspect-ratio:1;border-radius:6px;background:var(--card);display:grid;place-items:center;overflow:hidden;position:relative}
-.disc{width:42%;aspect-ratio:1;border-radius:50%;border:1px solid var(--mute);opacity:.5;position:relative}
-.disc::after{content:"";position:absolute;inset:44%;border-radius:50%;background:var(--mute)}
-.playing .disc{animation:spin 8s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.meta{margin-top:32px}
-.title{font-size:22px;font-weight:600;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.artist{color:var(--mute);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.bar{margin-top:28px;height:24px;display:flex;align-items:center;cursor:pointer;touch-action:none}
-.track{position:relative;width:100%;height:2px;background:var(--line)}
-.fill{position:absolute;inset:0 auto 0 0;background:var(--fg);width:0}
-.knob{position:absolute;top:50%;width:10px;height:10px;border-radius:50%;background:var(--fg);transform:translate(-50%,-50%);left:0}
-.times{display:flex;justify-content:space-between;font-size:12px;color:var(--mute);font-variant-numeric:tabular-nums}
-.controls{display:flex;justify-content:space-between;align-items:center;margin-top:24px}
-.play{width:68px;height:68px;border-radius:50%;background:var(--fg);color:var(--bg);display:grid;place-items:center}
-.play svg{width:26px;height:26px;fill:currentColor}
-.main svg{width:28px;height:28px;fill:currentColor;stroke:none}
-.list{margin-top:36px;border-top:1px solid var(--line);flex:1}
-.item{display:flex;gap:14px;align-items:center;padding:14px 0;border-bottom:1px solid var(--line);width:100%;text-align:left}
-.item .n{width:20px;font-size:12px;color:var(--mute);font-variant-numeric:tabular-nums}
-.item .t{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.item.active .t{font-weight:600}
-.item.active .n{color:var(--fg)}
-.empty{padding:40px 0;text-align:center;color:var(--mute)}
-.add{display:inline-block;margin-top:14px;padding:10px 22px;border:1px solid var(--fg);border-radius:999px;color:var(--fg)}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--fg);font:15px/1.4 -apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;user-select:none}
+button{background:none;border:0;color:inherit;font:inherit;cursor:pointer}
+svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+svg.f{fill:currentColor;stroke:none}
+.ib{width:42px;height:42px;display:grid;place-items:center;border-radius:50%;transition:background .15s}
+.ib:active{background:var(--soft)}
+
+/* Vistas */
+.view{position:absolute;inset:0;overflow-y:auto;padding:calc(16px + env(safe-area-inset-top)) 20px calc(110px + env(safe-area-inset-bottom));transition:transform .32s cubic-bezier(.2,.8,.2,1),opacity .32s}
+.view.hidden{transform:translateX(30%);opacity:0;pointer-events:none}
+.view.behind{transform:translateX(-12%);opacity:0;pointer-events:none}
+.top{display:flex;align-items:center;justify-content:space-between;height:44px;margin-bottom:12px}
+.top .left{display:flex;align-items:center;gap:4px;margin-left:-10px}
+h1{font-size:32px;font-weight:700;letter-spacing:-.03em;margin:8px 0 4px}
+.sub{color:var(--mute);font-size:13px;margin-bottom:22px}
+.label{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);margin:26px 0 12px;display:flex;justify-content:space-between;align-items:center}
+.label button{font-size:11px;letter-spacing:.14em;color:var(--fg)}
+
+/* Carpetas */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.folder{position:relative;aspect-ratio:1/1.05;border-radius:18px;padding:16px;text-align:left;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;color:#161616;transition:transform .15s}
+.folder:active{transform:scale(.97)}
+.folder .fi{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.55);display:grid;place-items:center}
+.folder .fi svg{width:18px;height:18px}
+.folder b{font-size:16px;font-weight:650;letter-spacing:-.01em;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.folder small{font-size:12px;opacity:.6}
+.folder.new{background:transparent;border:1.5px dashed var(--line);color:var(--mute);align-items:center;justify-content:center;gap:8px}
+.folder.new .fi{background:var(--soft)}
+
+/* Canciones */
+.song{display:flex;align-items:center;gap:14px;padding:10px 0;width:100%;text-align:left}
+.art{width:46px;height:46px;border-radius:10px;flex-shrink:0;display:grid;place-items:center;color:rgba(22,22,22,.55);font-weight:700;font-size:15px}
+.song .info{flex:1;min-width:0}
+.song .t{font-weight:550;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.song .a{font-size:13px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.song.active .t{color:var(--fg)}
+.song.active .art{box-shadow:0 0 0 2px var(--fg)}
+.eq{display:none;gap:2px;align-items:flex-end;height:14px}
+.song.active .eq{display:flex}
+.eq i{width:3px;background:var(--fg);border-radius:2px;animation:eq 1s ease-in-out infinite}
+.eq i:nth-child(2){animation-delay:-.3s}.eq i:nth-child(3){animation-delay:-.6s}
+.paused .eq i{animation-play-state:paused}
+@keyframes eq{0%,100%{height:4px}50%{height:14px}}
+.more{color:var(--mute)}
+.empty{text-align:center;color:var(--mute);padding:50px 10px}
+.empty svg{width:40px;height:40px;stroke-width:1.2;margin-bottom:12px}
+.btn{display:inline-flex;align-items:center;gap:8px;margin-top:18px;padding:12px 22px;border-radius:999px;background:var(--fg);color:var(--bg);font-weight:600;font-size:14px}
+.btn svg{width:18px;height:18px}
+.actions{display:flex;gap:10px;margin-bottom:8px}
+.pill{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;border-radius:14px;background:var(--card);font-weight:600;font-size:14px;box-shadow:0 1px 0 var(--line)}
+.pill.dark{background:var(--fg);color:var(--bg)}
+.pill svg{width:18px;height:18px}
+.search{display:flex;align-items:center;gap:10px;background:var(--card);border-radius:14px;padding:0 14px;height:44px;color:var(--mute)}
+.search input{flex:1;border:0;background:none;outline:none;color:var(--fg);font:inherit}
+
+/* Mini reproductor */
+.mini{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));background:var(--card);border-radius:18px;box-shadow:var(--shadow);display:flex;align-items:center;gap:12px;padding:8px 8px 8px 8px;transform:translateY(150%);transition:transform .35s cubic-bezier(.2,.8,.2,1);overflow:hidden;z-index:5}
+.mini.show{transform:none}
+.mini .art{width:44px;height:44px}
+.mini .info{flex:1;min-width:0}
+.mini .t{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mini .a{font-size:12px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mini .prog{position:absolute;left:0;bottom:0;height:2px;background:var(--fg);width:0}
+
+/* Reproductor completo */
+.player{position:fixed;inset:0;background:var(--bg);z-index:10;display:flex;flex-direction:column;padding:calc(10px + env(safe-area-inset-top)) 26px calc(28px + env(safe-area-inset-bottom));transform:translateY(100%);transition:transform .4s cubic-bezier(.2,.8,.2,1)}
+.player.open{transform:none}
+.player .top{margin-left:-10px;margin-right:-10px}
+.player .top span{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+.cover{margin:18px auto 0;width:100%;max-width:360px;aspect-ratio:1;border-radius:24px;display:grid;place-items:center;position:relative;transition:transform .5s cubic-bezier(.2,.8,.2,1);box-shadow:var(--shadow)}
+.paused .cover{transform:scale(.9)}
+.cover .big{font-size:96px;font-weight:800;letter-spacing:-.05em;color:rgba(22,22,22,.18)}
+.meta{margin-top:34px;display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
+.meta div{min-width:0}
+.meta .t{font-size:23px;font-weight:700;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meta .a{color:var(--mute);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chip{font-size:12px;padding:6px 12px;border-radius:999px;background:var(--soft);white-space:nowrap;display:flex;align-items:center;gap:6px}
+.chip svg{width:14px;height:14px}
+.bar{margin-top:26px;height:26px;display:flex;align-items:center;touch-action:none;cursor:pointer}
+.track{position:relative;width:100%;height:4px;border-radius:4px;background:var(--line)}
+.fill{position:absolute;inset:0 auto 0 0;background:var(--fg);border-radius:4px;width:0}
+.knob{position:absolute;top:50%;width:14px;height:14px;border-radius:50%;background:var(--fg);transform:translate(-50%,-50%) scale(.7);left:0;transition:transform .15s}
+.bar:active .knob{transform:translate(-50%,-50%) scale(1.1)}
+.times{display:flex;justify-content:space-between;font-size:12px;color:var(--mute);font-variant-numeric:tabular-nums;margin-top:2px}
+.controls{display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:20px}
+.controls .ib{width:48px;height:48px}
+.controls .ib.off{color:var(--mute)}
+.controls .ib.on{color:var(--fg);background:var(--soft)}
+.controls .skip svg{width:30px;height:30px}
+.play{width:76px;height:76px;border-radius:50%;background:var(--fg);color:var(--bg);display:grid;place-items:center;transition:transform .15s}
+.play:active{transform:scale(.93)}
+.play svg{width:30px;height:30px}
+
+/* Hojas y diálogos */
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:opacity .25s;z-index:20}
+.scrim.show{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-radius:24px 24px 0 0;padding:10px 20px calc(20px + env(safe-area-inset-bottom));z-index:21;transform:translateY(100%);transition:transform .3s cubic-bezier(.2,.8,.2,1);max-height:80vh;overflow-y:auto}
+.sheet.show{transform:none}
+.grab{width:38px;height:4px;border-radius:4px;background:var(--line);margin:0 auto 16px}
+.sheet h3{font-size:17px;font-weight:650;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sheet p{color:var(--mute);font-size:13px;margin-bottom:14px}
+.opt{display:flex;align-items:center;gap:14px;width:100%;padding:13px 4px;text-align:left;border-radius:12px;font-weight:500}
+.opt:active{background:var(--soft)}
+.opt .dot{width:22px;height:22px;border-radius:7px}
+.opt.sel::after{content:"✓";margin-left:auto;font-weight:700}
+.opt.danger{color:#d0473a}
+.sheet input{width:100%;height:50px;border-radius:14px;border:1.5px solid var(--line);background:var(--bg);color:var(--fg);padding:0 16px;font:inherit;font-size:16px;outline:none;margin:6px 0 16px}
+.sheet input:focus{border-color:var(--fg)}
+.colors{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.colors button{width:36px;height:36px;border-radius:50%;transition:transform .15s}
+.colors button.sel{box-shadow:0 0 0 2px var(--card),0 0 0 4px var(--fg)}
+.row{display:flex;gap:10px}
+.row button{flex:1;padding:14px;border-radius:14px;font-weight:600;background:var(--soft)}
+.row button.pri{background:var(--fg);color:var(--bg)}
+.toast{position:fixed;left:50%;top:calc(16px + env(safe-area-inset-top));transform:translate(-50%,-150%);background:var(--fg);color:var(--bg);padding:10px 18px;border-radius:999px;font-size:13px;font-weight:600;z-index:30;transition:transform .3s}
+.toast.show{transform:translate(-50%,0)}
 input[type=file]{display:none}
 </style>
 </head>
-<body>
-<div class="app" id="app">
-  <header>
-    <span>Reproduciendo</span>
-    <label class="icon" title="Añadir música" for="file"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></label>
-  </header>
+<body class="paused">
 
-  <div class="cover" id="cover"><div class="disc"></div></div>
-
-  <div class="meta">
-    <div class="title" id="title">Sin canción</div>
-    <div class="artist" id="artist">Añade música desde tu teléfono</div>
+<!-- Biblioteca -->
+<section class="view" id="vHome">
+  <div class="top">
+    <span style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)">Biblioteca</span>
+    <button class="ib" id="addHome" title="Añadir canciones"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
   </div>
+  <h1>Tu música</h1>
+  <div class="sub" id="stats">0 canciones</div>
+  <div class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" placeholder="Buscar canciones o artistas"></div>
+  <div class="label"><span>Carpetas</span></div>
+  <div class="grid" id="folders"></div>
+  <div class="label"><span id="recentLabel">Todas las canciones</span></div>
+  <div id="allSongs"></div>
+</section>
 
-  <div class="bar" id="bar"><div class="track"><div class="fill" id="fill"></div><div class="knob" id="knob"></div></div></div>
-  <div class="times"><span id="cur">0:00</span><span id="dur">0:00</span></div>
-
-  <div class="controls">
-    <button class="icon off" id="shuffle" title="Aleatorio"><svg viewBox="0 0 24 24"><path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg></button>
-    <button class="icon main" id="prev" title="Anterior"><svg viewBox="0 0 24 24"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg></button>
-    <button class="play" id="play" title="Reproducir"><svg viewBox="0 0 24 24" id="playIcon"><path d="M8 5v14l11-7z"/></svg></button>
-    <button class="icon main" id="next" title="Siguiente"><svg viewBox="0 0 24 24"><path d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg></button>
-    <button class="icon off" id="repeat" title="Repetir"><svg viewBox="0 0 24 24"><path d="M17 2l4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3"/></svg></button>
+<!-- Carpeta -->
+<section class="view hidden" id="vFolder">
+  <div class="top">
+    <div class="left"><button class="ib" id="back"><svg viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></svg></button></div>
+    <button class="ib" id="folderMore"><svg viewBox="0 0 24 24" class="f"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button>
   </div>
-
-  <div class="list" id="list">
-    <div class="empty">Tu lista está vacía<br><label class="add" for="file">Elegir canciones</label></div>
+  <h1 id="fName">Carpeta</h1>
+  <div class="sub" id="fStats"></div>
+  <div class="actions">
+    <button class="pill dark" id="fPlay"><svg viewBox="0 0 24 24" class="f"><path d="M8 5v14l11-7z"/></svg>Reproducir</button>
+    <button class="pill" id="fShuffle"><svg viewBox="0 0 24 24"><path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>Aleatorio</button>
   </div>
-  <input type="file" id="file" accept="audio/*" multiple>
+  <div id="fSongs"></div>
+</section>
+
+<!-- Mini -->
+<div class="mini" id="mini">
+  <div class="art" id="mArt"></div>
+  <div class="info"><div class="t" id="mT"></div><div class="a" id="mA"></div></div>
+  <button class="ib" id="mPlay"><svg viewBox="0 0 24 24" class="f pi"><path d="M8 5v14l11-7z"/></svg></button>
+  <button class="ib" id="mNext"><svg viewBox="0 0 24 24" class="f"><path d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg></button>
+  <div class="prog" id="mProg"></div>
 </div>
 
+<!-- Reproductor -->
+<section class="player" id="player">
+  <div class="top">
+    <button class="ib" id="close"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>
+    <span id="pFrom">Reproduciendo</span>
+    <button class="ib" id="pMore"><svg viewBox="0 0 24 24" class="f"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button>
+  </div>
+  <div class="cover" id="cover"><span class="big" id="cBig"></span></div>
+  <div class="meta">
+    <div><div class="t" id="pT"></div><div class="a" id="pA"></div></div>
+    <button class="chip" id="pFolder"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span id="pFolderName">Sin carpeta</span></button>
+  </div>
+  <div class="bar" id="bar"><div class="track"><div class="fill" id="fill"></div><div class="knob" id="knob"></div></div></div>
+  <div class="times"><span id="cur">0:00</span><span id="dur">0:00</span></div>
+  <div class="controls">
+    <button class="ib off" id="shuffle"><svg viewBox="0 0 24 24"><path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg></button>
+    <button class="ib skip" id="prev"><svg viewBox="0 0 24 24" class="f"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg></button>
+    <button class="play" id="play"><svg viewBox="0 0 24 24" class="f pi"><path d="M8 5v14l11-7z"/></svg></button>
+    <button class="ib skip" id="next"><svg viewBox="0 0 24 24" class="f"><path d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg></button>
+    <button class="ib off" id="repeat"><svg viewBox="0 0 24 24"><path d="M17 2l4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3"/></svg></button>
+  </div>
+</section>
+
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet"></div>
+<div class="toast" id="toast"></div>
+<input type="file" id="file" accept="audio/*" multiple>
 <audio id="audio" preload="metadata"></audio>
 
 <script>
 const $ = id => document.getElementById(id);
 const audio = $('audio');
-let songs = [], idx = -1, shuffle = false, repeat = false;
+const COLORS = ['#e8d5c4','#c9d8c5','#c7d3e3','#e3c9d3','#ded7b8','#d3cbe6','#bfdcd8','#e6c7b5'];
+const ICON_FOLDER = '<svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>';
 const PLAY = '<path d="M8 5v14l11-7z"/>', PAUSE = '<path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/>';
+const esc = t => String(t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const fmt = s => isFinite(s) ? Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0') : '0:00';
+const hash = s => [...s].reduce((h,c)=>(h*31+c.charCodeAt(0))|0,0);
+const songColor = s => COLORS[Math.abs(hash(s.artist+s.title)) % COLORS.length];
+const initials = s => (s.title.match(/[\p{L}\p{N}]/u)||['♪'])[0].toUpperCase();
 
+/* ---------- Almacenamiento (IndexedDB) ---------- */
+let db;
+const openDB = () => new Promise((res, rej) => {
+  const r = indexedDB.open('reproductor', 1);
+  r.onupgradeneeded = () => { r.result.createObjectStore('songs',{keyPath:'id'}); r.result.createObjectStore('folders',{keyPath:'id'}); };
+  r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+});
+const tx = (store, mode='readonly') => db.transaction(store, mode).objectStore(store);
+const all = store => new Promise(r => { const q = tx(store).getAll(); q.onsuccess = () => r(q.result); q.onerror = () => r([]); });
+const put = (store, v) => new Promise(r => { const q = tx(store,'readwrite').put(v); q.onsuccess = q.onerror = r; });
+const del = (store, id) => new Promise(r => { const q = tx(store,'readwrite').delete(id); q.onsuccess = q.onerror = r; });
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+
+let songs = [], folders = [];
+let queue = [], qi = -1, current = null, urls = new Map();
+let shuffle = false, repeat = false, openFolder = null, addTarget = null, query = '';
+
+const urlFor = s => { if (!urls.has(s.id)) urls.set(s.id, URL.createObjectURL(s.blob)); return urls.get(s.id); };
+const folderOf = id => folders.find(f => f.id === id);
+const inFolder = fid => fid === '__all' ? songs : songs.filter(s => s.folder === fid);
+
+/* ---------- Render ---------- */
+function songRow(s){
+  const active = current && current.id === s.id;
+  return `<div class="song${active?' active':''}" data-id="${s.id}">
+    <div class="art" style="background:${songColor(s)}">${esc(initials(s))}</div>
+    <div class="info"><div class="t">${esc(s.title)}</div><div class="a">${esc(s.artist)}${s.folder && !openFolder ? ' · '+esc(folderOf(s.folder)?.name||'') : ''}</div></div>
+    <span class="eq"><i></i><i></i><i></i></span>
+    <button class="ib more" data-more="${s.id}"><svg viewBox="0 0 24 24" class="f"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg></button>
+  </div>`;
+}
+const emptyBox = (msg) => `<div class="empty"><svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg><div>${msg}</div><button class="btn" data-add="1"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Añadir canciones</button></div>`;
+
+function render(){
+  $('stats').textContent = `${songs.length} ${songs.length===1?'canción':'canciones'} · ${folders.length} ${folders.length===1?'carpeta':'carpetas'}`;
+  $('folders').innerHTML =
+    `<button class="folder" data-folder="__all" style="background:#d9d6cf"><div class="fi"><svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div><div><b>Todas</b><small>${songs.length} canciones</small></div></button>` +
+    folders.map(f => `<button class="folder" data-folder="${f.id}" style="background:${f.color}"><div class="fi">${ICON_FOLDER}</div><div><b>${esc(f.name)}</b><small>${inFolder(f.id).length} canciones</small></div></button>`).join('') +
+    `<button class="folder new" id="newFolder"><div class="fi"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></div><b style="font-size:14px">Nueva carpeta</b></button>`;
+  const list = query ? songs.filter(s => (s.title+' '+s.artist).toLowerCase().includes(query)) : songs;
+  $('recentLabel').textContent = query ? `Resultados (${list.length})` : 'Todas las canciones';
+  $('allSongs').innerHTML = list.length ? list.map(songRow).join('') : (query ? '<div class="empty">Sin resultados</div>' : emptyBox('Aún no tienes música'));
+  if (openFolder) renderFolder();
+}
+function renderFolder(){
+  const isAll = openFolder === '__all';
+  const f = folderOf(openFolder);
+  if (!isAll && !f) return closeFolder();
+  const list = inFolder(openFolder);
+  $('fName').textContent = isAll ? 'Todas' : f.name;
+  $('fStats').textContent = `${list.length} ${list.length===1?'canción':'canciones'}`;
+  $('folderMore').style.visibility = isAll ? 'hidden' : 'visible';
+  $('fSongs').innerHTML = list.length ? list.map(songRow).join('') : emptyBox('Esta carpeta está vacía');
+}
+function renderNow(){
+  if (!current) { $('mini').classList.remove('show'); return; }
+  const s = current, c = songColor(s), f = folderOf(s.folder);
+  $('mini').classList.add('show');
+  $('mArt').style.background = c; $('mArt').textContent = initials(s);
+  $('mT').textContent = s.title; $('mA').textContent = s.artist;
+  $('pT').textContent = s.title; $('pA').textContent = s.artist;
+  $('cover').style.background = c; $('cBig').textContent = initials(s);
+  $('pFolderName').textContent = f ? f.name : 'Sin carpeta';
+  document.querySelectorAll('.song').forEach(el => el.classList.toggle('active', el.dataset.id === s.id));
+}
+
+/* ---------- Navegación ---------- */
+function showFolder(id){ openFolder = id; renderFolder(); $('vFolder').classList.remove('hidden'); $('vHome').classList.add('behind'); $('vFolder').scrollTop = 0; }
+function closeFolder(){ openFolder = null; $('vFolder').classList.add('hidden'); $('vHome').classList.remove('behind'); render(); }
+$('back').onclick = closeFolder;
+$('mini').onclick = e => { if (!e.target.closest('button')) $('player').classList.add('open'); };
+$('close').onclick = () => $('player').classList.remove('open');
+
+document.addEventListener('click', e => {
+  const more = e.target.closest('[data-more]');
+  if (more) { e.stopPropagation(); return songSheet(songs.find(s => s.id === more.dataset.more)); }
+  if (e.target.closest('[data-add]')) return pickFiles(openFolder && openFolder !== '__all' ? openFolder : null);
+  if (e.target.closest('#newFolder')) return folderSheet();
+  const fo = e.target.closest('[data-folder]');
+  if (fo) return showFolder(fo.dataset.folder);
+  const row = e.target.closest('.song');
+  if (row) {
+    const ctx = row.closest('#fSongs') ? inFolder(openFolder) : (query ? songs.filter(s => (s.title+' '+s.artist).toLowerCase().includes(query)) : songs);
+    playList(ctx, ctx.findIndex(s => s.id === row.dataset.id));
+  }
+});
+$('q').oninput = e => { query = e.target.value.trim().toLowerCase(); render(); };
+
+/* ---------- Añadir canciones ---------- */
 function parse(name){
-  const base = name.replace(/\.[^.]+$/, '').replace(/_/g,' ');
+  const base = name.replace(/\.[^.]+$/, '').replace(/_/g,' ').trim();
   const p = base.split(' - ');
   return p.length > 1 ? {artist:p[0].trim(), title:p.slice(1).join(' - ').trim()} : {artist:'Artista desconocido', title:base};
 }
-
-$('file').onchange = e => {
-  const files = [...e.target.files];
-  files.forEach(f => songs.push({url:URL.createObjectURL(f), ...parse(f.name)}));
+function pickFiles(folder){ addTarget = folder; $('file').click(); }
+$('addHome').onclick = () => pickFiles(null);
+$('file').onchange = async e => {
+  const files = [...e.target.files]; e.target.value = '';
+  for (const f of files) {
+    const s = {id:uid(), ...parse(f.name), blob:f, folder:addTarget, added:Date.now()};
+    await put('songs', s); songs.push(s);
+  }
   render();
-  if (idx < 0 && songs.length) load(0, false);
-  e.target.value = '';
+  toast(`${files.length} ${files.length===1?'canción añadida':'canciones añadidas'}`);
 };
 
-function render(){
-  if (!songs.length) return;
-  $('list').innerHTML = songs.map((s,i) =>
-    `<button class="item${i===idx?' active':''}" data-i="${i}"><span class="n">${String(i+1).padStart(2,'0')}</span><span class="t">${esc(s.title)}</span></button>`).join('');
-}
-const esc = t => t.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-$('list').onclick = e => { const b = e.target.closest('.item'); if (b) load(+b.dataset.i, true); };
+/* ---------- Hojas ---------- */
+function openSheet(html){ $('sheet').innerHTML = '<div class="grab"></div>' + html; $('sheet').classList.add('show'); $('scrim').classList.add('show'); }
+function closeSheet(){ $('sheet').classList.remove('show'); $('scrim').classList.remove('show'); }
+$('scrim').onclick = closeSheet;
 
-function load(i, autoplay){
-  idx = i; const s = songs[i];
-  audio.src = s.url;
-  $('title').textContent = s.title; $('artist').textContent = s.artist;
-  render();
-  if ('mediaSession' in navigator) navigator.mediaSession.metadata = new MediaMetadata({title:s.title, artist:s.artist});
-  if (autoplay) audio.play();
+function folderSheet(edit){
+  let color = edit ? edit.color : COLORS[folders.length % COLORS.length];
+  openSheet(`<h3>${edit?'Editar carpeta':'Nueva carpeta'}</h3><p>Organiza tus canciones por categoría</p>
+    <input id="fInput" maxlength="30" placeholder="Ej. Rock, Para entrenar, Relax" value="${edit?esc(edit.name):''}">
+    <div class="colors">${COLORS.map(c=>`<button data-c="${c}" style="background:${c}" class="${c===color?'sel':''}"></button>`).join('')}</div>
+    <div class="row"><button id="sCancel">Cancelar</button><button class="pri" id="sOk">${edit?'Guardar':'Crear'}</button></div>`);
+  setTimeout(() => $('fInput').focus(), 300);
+  $('sheet').querySelector('.colors').onclick = e => { const b = e.target.closest('[data-c]'); if (!b) return; color = b.dataset.c; $('sheet').querySelectorAll('.colors button').forEach(x => x.classList.toggle('sel', x===b)); };
+  $('sCancel').onclick = closeSheet;
+  $('sOk').onclick = async () => {
+    const name = $('fInput').value.trim(); if (!name) return $('fInput').focus();
+    const f = edit ? Object.assign(edit, {name, color}) : {id:uid(), name, color, created:Date.now()};
+    await put('folders', f); if (!edit) folders.push(f);
+    closeSheet(); render(); renderNow(); toast(edit ? 'Carpeta actualizada' : `Carpeta "${name}" creada`);
+  };
 }
 
-function toggle(){ if (idx < 0) return $('file').click(); audio.paused ? audio.play() : audio.pause(); }
+function moveSheet(s){
+  openSheet(`<h3>Mover a carpeta</h3><p>${esc(s.title)}</p>
+    <button class="opt${!s.folder?' sel':''}" data-mv=""><span class="dot" style="background:var(--soft)"></span>Sin carpeta</button>
+    ${folders.map(f=>`<button class="opt${s.folder===f.id?' sel':''}" data-mv="${f.id}"><span class="dot" style="background:${f.color}"></span>${esc(f.name)}</button>`).join('')}
+    <button class="opt" id="mvNew"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Nueva carpeta</button>`);
+  $('sheet').onclick = async e => {
+    if (e.target.closest('#mvNew')) { $('sheet').onclick = null; return folderSheet(); }
+    const b = e.target.closest('[data-mv]'); if (!b) return;
+    s.folder = b.dataset.mv || null; await put('songs', s);
+    $('sheet').onclick = null; closeSheet(); render(); renderNow();
+    toast(s.folder ? `Movida a "${folderOf(s.folder).name}"` : 'Quitada de la carpeta');
+  };
+}
+
+function songSheet(s){
+  if (!s) return;
+  openSheet(`<h3>${esc(s.title)}</h3><p>${esc(s.artist)}</p>
+    <button class="opt" data-a="play"><svg viewBox="0 0 24 24" class="f"><path d="M8 5v14l11-7z"/></svg>Reproducir</button>
+    <button class="opt" data-a="next"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h7M17 15v6M14 18h6"/></svg>Reproducir a continuación</button>
+    <button class="opt" data-a="move">${ICON_FOLDER}Mover a carpeta</button>
+    <button class="opt" data-a="rename"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>Renombrar</button>
+    <button class="opt danger" data-a="del"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>Eliminar de la biblioteca</button>`);
+  $('sheet').onclick = async e => {
+    const b = e.target.closest('[data-a]'); if (!b) return;
+    $('sheet').onclick = null;
+    const a = b.dataset.a;
+    if (a === 'play') { closeSheet(); playList([s], 0); }
+    if (a === 'next') { closeSheet(); if (!current) playList([s],0); else { queue.splice(qi+1, 0, s); toast('Sonará a continuación'); } }
+    if (a === 'move') moveSheet(s);
+    if (a === 'rename') renameSheet(s);
+    if (a === 'del') {
+      await del('songs', s.id); songs = songs.filter(x => x.id !== s.id);
+      queue = queue.filter(x => x.id !== s.id);
+      if (current && current.id === s.id) { audio.pause(); audio.removeAttribute('src'); current = null; renderNow(); }
+      closeSheet(); render(); toast('Canción eliminada');
+    }
+  };
+}
+
+function renameSheet(s){
+  openSheet(`<h3>Renombrar</h3><p>Título y artista</p>
+    <input id="rT" value="${esc(s.title)}" placeholder="Título"><input id="rA" value="${esc(s.artist)}" placeholder="Artista" style="margin-top:-6px">
+    <div class="row"><button id="sCancel">Cancelar</button><button class="pri" id="sOk">Guardar</button></div>`);
+  $('sCancel').onclick = closeSheet;
+  $('sOk').onclick = async () => {
+    s.title = $('rT').value.trim() || s.title; s.artist = $('rA').value.trim() || 'Artista desconocido';
+    await put('songs', s); closeSheet(); render(); renderNow();
+  };
+}
+
+function folderActions(){
+  const f = folderOf(openFolder); if (!f) return;
+  openSheet(`<h3>${esc(f.name)}</h3><p>${inFolder(f.id).length} canciones</p>
+    <button class="opt" data-a="add"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Añadir canciones del teléfono</button>
+    <button class="opt" data-a="pick"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Elegir de la biblioteca</button>
+    <button class="opt" data-a="edit"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>Editar nombre y color</button>
+    <button class="opt danger" data-a="del"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>Eliminar carpeta</button>`);
+  $('sheet').onclick = async e => {
+    const b = e.target.closest('[data-a]'); if (!b) return;
+    $('sheet').onclick = null;
+    const a = b.dataset.a;
+    if (a === 'add') { closeSheet(); pickFiles(f.id); }
+    if (a === 'edit') folderSheet(f);
+    if (a === 'pick') pickSheet(f);
+    if (a === 'del') {
+      for (const s of inFolder(f.id)) { s.folder = null; await put('songs', s); }
+      await del('folders', f.id); folders = folders.filter(x => x.id !== f.id);
+      closeSheet(); closeFolder(); renderNow(); toast('Carpeta eliminada (las canciones se conservan)');
+    }
+  };
+}
+$('folderMore').onclick = folderActions;
+
+function pickSheet(f){
+  const sel = new Set(inFolder(f.id).map(s => s.id));
+  openSheet(`<h3>Añadir a "${esc(f.name)}"</h3><p>Toca para seleccionar</p>
+    ${songs.length ? songs.map(s=>`<button class="opt${sel.has(s.id)?' sel':''}" data-pk="${s.id}"><span class="dot" style="background:${songColor(s)}"></span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(s.title)}</span></button>`).join('') : '<p>No hay canciones en la biblioteca</p>'}
+    <div class="row" style="margin-top:12px"><button class="pri" id="sOk">Listo</button></div>`);
+  $('sheet').onclick = e => { const b = e.target.closest('[data-pk]'); if (!b) return; const id = b.dataset.pk; sel.has(id) ? sel.delete(id) : sel.add(id); b.classList.toggle('sel'); };
+  $('sOk').onclick = async () => {
+    for (const s of songs) {
+      const want = sel.has(s.id);
+      if (want && s.folder !== f.id) { s.folder = f.id; await put('songs', s); }
+      if (!want && s.folder === f.id) { s.folder = null; await put('songs', s); }
+    }
+    $('sheet').onclick = null; closeSheet(); render(); renderNow();
+  };
+}
+$('pFolder').onclick = () => current && moveSheet(current);
+$('pMore').onclick = () => current && songSheet(current);
+
+/* ---------- Reproducción ---------- */
+function playList(list, i, shuf){
+  if (!list.length) return;
+  queue = list.slice();
+  if (shuf) { for (let k = queue.length-1; k > 0; k--) { const j = Math.floor(Math.random()*(k+1)); [queue[k],queue[j]] = [queue[j],queue[k]]; } i = 0; }
+  qi = Math.max(0, i);
+  const name = openFolder ? (openFolder === '__all' ? 'Todas' : folderOf(openFolder)?.name) : 'Biblioteca';
+  $('pFrom').textContent = 'Desde ' + (name || 'Biblioteca');
+  load(true);
+}
+function load(autoplay){
+  current = queue[qi]; if (!current) return;
+  audio.src = urlFor(current);
+  renderNow();
+  if ('mediaSession' in navigator) navigator.mediaSession.metadata = new MediaMetadata({title:current.title, artist:current.artist, album:folderOf(current.folder)?.name || ''});
+  if (autoplay) audio.play().catch(()=>{});
+}
+function toggle(){ if (!current) return songs.length ? playList(songs,0) : pickFiles(null); audio.paused ? audio.play() : audio.pause(); }
 function next(){
-  if (!songs.length) return;
-  const n = shuffle && songs.length > 1 ? (idx + 1 + Math.floor(Math.random()*(songs.length-1))) % songs.length : (idx+1) % songs.length;
-  load(n, true);
+  if (!queue.length) return;
+  if (shuffle && queue.length > 1) qi = (qi + 1 + Math.floor(Math.random()*(queue.length-1))) % queue.length;
+  else qi = (qi + 1) % queue.length;
+  load(true);
 }
 function prev(){
-  if (!songs.length) return;
+  if (!queue.length) return;
   if (audio.currentTime > 3) { audio.currentTime = 0; return; }
-  load((idx - 1 + songs.length) % songs.length, true);
+  qi = (qi - 1 + queue.length) % queue.length; load(true);
 }
+$('play').onclick = toggle; $('mPlay').onclick = toggle;
+$('next').onclick = next; $('mNext').onclick = next; $('prev').onclick = prev;
+$('fPlay').onclick = () => playList(inFolder(openFolder), 0);
+$('fShuffle').onclick = () => playList(inFolder(openFolder), 0, true);
+$('shuffle').onclick = e => { shuffle = !shuffle; e.currentTarget.className = 'ib ' + (shuffle?'on':'off'); toast(shuffle?'Aleatorio activado':'Aleatorio desactivado'); };
+$('repeat').onclick = e => { repeat = !repeat; e.currentTarget.className = 'ib ' + (repeat?'on':'off'); toast(repeat?'Repetir canción':'Repetir desactivado'); };
 
-$('play').onclick = toggle; $('next').onclick = next; $('prev').onclick = prev;
-$('shuffle').onclick = e => { shuffle = !shuffle; e.currentTarget.className = 'icon ' + (shuffle?'on':'off'); };
-$('repeat').onclick = e => { repeat = !repeat; e.currentTarget.className = 'icon ' + (repeat?'on':'off'); };
-
-audio.onplay = () => { $('playIcon').innerHTML = PAUSE; $('app').classList.add('playing'); };
-audio.onpause = () => { $('playIcon').innerHTML = PLAY; $('app').classList.remove('playing'); };
-audio.onended = () => repeat ? (audio.currentTime = 0, audio.play()) : (idx < songs.length-1 || shuffle ? next() : null);
+const setIcons = p => document.querySelectorAll('.pi').forEach(el => el.innerHTML = p ? PAUSE : PLAY);
+audio.onplay = () => { setIcons(true); document.body.classList.remove('paused'); };
+audio.onpause = () => { setIcons(false); document.body.classList.add('paused'); };
+audio.onended = () => { if (repeat) { audio.currentTime = 0; audio.play(); } else if (qi < queue.length-1 || shuffle) next(); };
 audio.onloadedmetadata = () => $('dur').textContent = fmt(audio.duration);
 audio.ontimeupdate = () => {
-  if (dragging) return;
   const p = audio.duration ? audio.currentTime / audio.duration * 100 : 0;
+  $('mProg').style.width = p + '%';
+  if (dragging) return;
   setBar(p); $('cur').textContent = fmt(audio.currentTime);
 };
 function setBar(p){ $('fill').style.width = p+'%'; $('knob').style.left = p+'%'; }
-
 let dragging = false;
 const bar = $('bar');
 const pct = e => { const r = bar.getBoundingClientRect(); return Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)); };
@@ -159,6 +494,24 @@ if ('mediaSession' in navigator) {
   navigator.mediaSession.setActionHandler('nexttrack', next);
   navigator.mediaSession.setActionHandler('previoustrack', prev);
 }
+
+/* Botón atrás de Android */
+history.pushState(null, '');
+window.addEventListener('popstate', () => {
+  history.pushState(null, '');
+  if ($('sheet').classList.contains('show')) closeSheet();
+  else if ($('player').classList.contains('open')) $('player').classList.remove('open');
+  else if (openFolder) closeFolder();
+});
+
+let tt;
+function toast(m){ $('toast').textContent = m; $('toast').classList.add('show'); clearTimeout(tt); tt = setTimeout(() => $('toast').classList.remove('show'), 1800); }
+
+(async () => {
+  try { db = await openDB(); [songs, folders] = await Promise.all([all('songs'), all('folders')]); songs.sort((a,b)=>a.added-b.added); folders.sort((a,b)=>a.created-b.created); }
+  catch { toast('No se pudo abrir el almacenamiento'); }
+  render();
+})();
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js');
 </script>
 </body>
