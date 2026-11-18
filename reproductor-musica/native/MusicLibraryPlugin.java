@@ -34,6 +34,45 @@ import java.io.InputStream;
 )
 public class MusicLibraryPlugin extends Plugin {
 
+    static MusicLibraryPlugin instance;
+
+    @Override
+    public void load() { instance = this; }
+
+    /** Llamado por el widget cuando se toca un botón. */
+    void fromWidget(String action) {
+        JSObject d = new JSObject();
+        d.put("action", action);
+        notifyListeners("widget", d, true);
+    }
+
+    @PluginMethod
+    public void updateWidget(PluginCall call) {
+        android.content.SharedPreferences.Editor e = getContext().getSharedPreferences(PlayerWidget.PREFS, android.content.Context.MODE_PRIVATE).edit();
+        e.putString("title", call.getString("title", ""));
+        e.putString("artist", call.getString("artist", ""));
+        e.putBoolean("playing", Boolean.TRUE.equals(call.getBoolean("playing", false)));
+        String art = call.getString("art");
+        if (art != null && art.startsWith("data:")) {
+            try {
+                String b64 = art.substring(art.indexOf(",") + 1);
+                byte[] raw = Base64.decode(b64, Base64.DEFAULT);
+                Bitmap b = BitmapFactory.decodeByteArray(raw, 0, raw.length);
+                if (b != null) {
+                    Bitmap sc = Bitmap.createScaledBitmap(b, 200, 200, true);
+                    java.io.File f = new java.io.File(getContext().getFilesDir(), "widget_art.png");
+                    try (java.io.FileOutputStream out = new java.io.FileOutputStream(f)) { sc.compress(Bitmap.CompressFormat.PNG, 100, out); }
+                    e.putBoolean("hasArt", true);
+                }
+            } catch (Exception ignored) { e.putBoolean("hasArt", false); }
+        }
+        e.apply();
+        int n = PlayerWidget.renderAll(getContext());
+        JSObject r = new JSObject();
+        r.put("widgets", n);
+        call.resolve(r);
+    }
+
     private String alias() { return Build.VERSION.SDK_INT >= 33 ? "audio" : "storage"; }
     private boolean granted() { return getPermissionState(alias()) == PermissionState.GRANTED; }
 

@@ -24,11 +24,33 @@ jobs:
           grep -n "permission" $M
           D=android/app/src/main/java/com/qsentry/reproductor
           cp native/*.java $D/
+          cp -r native/res/* android/app/src/main/res/
+          sed -i 's#</application>#    <receiver android:name=".PlayerWidget" android:exported="true" android:label="Reproductor">\n            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>\n            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_player_info" />\n        </receiver>\n    </application>#' $M
           cp node_modules/@capacitor/core/dist/capacitor.js www/capacitor.js
           npx cap sync android
-      - name: Compilar APK
+      - name: Compilar y firmar APK
         working-directory: reproductor-musica/android
-        run: chmod +x gradlew && ./gradlew assembleDebug
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        run: |
+          chmod +x gradlew
+          OUTDIR=app/build/outputs/apk/final; mkdir -p $OUTDIR
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "Firmando con tu clave (release)"
+            ./gradlew assembleRelease
+            echo "$KEYSTORE_BASE64" | base64 -d > /tmp/rep.jks
+            BT=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -1)
+            $BT/zipalign -f -p 4 app/build/outputs/apk/release/app-release-unsigned.apk /tmp/aligned.apk
+            $BT/apksigner sign --ks /tmp/rep.jks --ks-pass env:KEYSTORE_PASSWORD --ks-key-alias reproductor --out $OUTDIR/app.apk /tmp/aligned.apk
+            rm -f /tmp/rep.jks
+          else
+            echo "::warning::Sin clave de firma (secreto KEYSTORE_BASE64). Se genera APK de depuración."
+            ./gradlew assembleDebug
+            cp app/build/outputs/apk/debug/app-debug.apk $OUTDIR/app.apk
+          fi
+          BT=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -1)
+          $BT/apksigner verify --print-certs $OUTDIR/app.apk | tee $OUTDIR/firma.txt
       - name: Habilitar KVM
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -47,10 +69,11 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: reproductor-apk
-          path: reproductor-musica/android/app/build/outputs/apk/debug/app-debug.apk
+          path: reproductor-musica/android/app/build/outputs/apk/final/app.apk
       - name: Guardar APK y resultados en la rama
         if: always()
         run: |
-          mkdir -p apk && cp reproductor-musica/android/app/build/outputs/apk/debug/app-debug.apk apk/Reproductor.apk || true
+          mkdir -p apk && cp reproductor-musica/android/app/build/outputs/apk/final/app.apk apk/Reproductor.apk || true
+          mkdir -p test-results && cp reproductor-musica/android/app/build/outputs/apk/final/firma.txt test-results/ || true
           git config user.name github-actions && git config user.email github-actions@users.noreply.github.com
           git add apk test-results 2>/dev/null; git commit -m "APK generado y resultados de prueba" && git push

@@ -8,7 +8,7 @@ adb wait-for-device
 until [ "$(adb shell getprop sys.boot_completed | tr -d '\r')" = 1 ]; do sleep 3; done
 sleep 60  # dejar que los servicios de Google terminen de arrancar
 front(){ adb shell dumpsys activity activities | grep -q "topResumedActivity.*$PKG" || { echo 'Relanzando app'; adb shell am start -W -n $PKG/.MainActivity; sleep 12; }; }
-adb install -r reproductor-musica/android/app/build/outputs/apk/debug/app-debug.apk
+adb install -r reproductor-musica/android/app/build/outputs/apk/final/app.apk
 python3 reproductor-musica/tests/make_audio.py /tmp/musica
 adb shell mkdir -p /sdcard/Music
 for f in /tmp/musica/*.wav; do adb push "$f" /sdcard/Music/; done
@@ -27,7 +27,7 @@ read W H < <(adb shell wm size | grep -o '[0-9]*x[0-9]*' | tail -1 | tr x ' ')
 echo "Pantalla: ${W}x${H}"
 # Primera canción de la lista (coordenadas relativas medidas en la captura)
 front
-adb shell input tap $(( W * 40 / 100 )) $(( H * 829 / 1000 ))
+adb shell input tap $(( W * 40 / 100 )) $(( H * 855 / 1000 ))
 sleep 5
 shot 2-reproduciendo-mini
 front
@@ -37,6 +37,15 @@ shot 3-reproductor
 adb shell input keyevent KEYCODE_HOME
 sleep 15
 adb shell dumpsys media_session > $OUT/media_session.txt
+# Auriculares: doble toque = siguiente
+adb logcat -d | grep -c "REP accion siguiente" > /tmp/n0
+adb shell input keyevent KEYCODE_HEADSETHOOK KEYCODE_HEADSETHOOK
+sleep 4
+adb logcat -d | grep -c "REP accion siguiente" > /tmp/n1
+# Triple toque = anterior
+adb shell input keyevent KEYCODE_HEADSETHOOK KEYCODE_HEADSETHOOK KEYCODE_HEADSETHOOK
+sleep 4
+adb shell dumpsys appwidget > $OUT/widgets.txt
 adb shell dumpsys activity services $PKG > $OUT/servicios.txt
 adb shell cmd statusbar expand-notifications; sleep 3
 shot 4-segundo-plano-notificacion
@@ -51,6 +60,11 @@ grep -E "REP|Capacitor/Console|FATAL|ActivityManager.*qsentry|ActivityTaskManage
   grep -q "REP audio-error" $OUT/logcat.txt && echo "FALLO error de audio: $(grep -o 'REP audio-error.*' $OUT/logcat.txt | head -1)"
   grep -q "state=PlaybackState {state=3" $OUT/media_session.txt && echo "OK sigue sonando en segundo plano (state=PLAYING)" || echo "REVISAR estado en segundo plano"
   grep -q "MediaSessionService" $OUT/servicios.txt && echo "OK servicio en primer plano activo" || echo "REVISAR servicio"
+ [ "$(cat /tmp/n1)" -gt "$(cat /tmp/n0)" ] && echo "OK auriculares doble toque = siguiente" || echo "FALLO doble toque"
+  grep -q "REP headset triple" $OUT/logcat.txt && echo "OK auriculares triple toque = anterior" || echo "REVISAR triple toque"
+  grep -q "REP crossfade" $OUT/logcat.txt && echo "OK transición suave entre canciones" || echo "FALLO transición"
+  grep -q "REP viz-error" $OUT/logcat.txt && echo "FALLO visualizador" || echo "OK visualizador sin errores"
+  grep -q "REP widget ok" $OUT/logcat.txt && grep -q "com.qsentry.reproductor/.PlayerWidget" $OUT/widgets.txt && echo "OK widget registrado y actualizándose" || echo "REVISAR widget"
   grep -q "FATAL EXCEPTION" $OUT/logcat-completo.txt && echo "FALLO crash detectado" || echo "OK sin crashes"
 } | tee $OUT/RESUMEN.txt
 rm -f $OUT/logcat-completo.txt

@@ -1,6 +1,0 @@
-== Resultado ==
-OK detecta música: REP scan 3 canciones
-OK reproduce: REP play 01 Prueba Uno https://localhost/_capacitor_content_/media/external/audio/m
-OK sigue sonando en segundo plano (state=PLAYING)
-OK servicio en primer plano activo
-OK sin crashes
