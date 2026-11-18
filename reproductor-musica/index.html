@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f5f4f0">
+<title>Reproductor</title>
+<style>
+:root{--bg:#f5f4f0;--fg:#1a1a1a;--mute:#8a8780;--line:#e2e0da;--card:#ebe9e3}
+@media (prefers-color-scheme:dark){:root{--bg:#121212;--fg:#ededeb;--mute:#77756f;--line:#262624;--card:#1c1c1b}}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font:15px/1.4 -apple-system,BlinkMacSystemFont,"Inter","Segoe UI",sans-serif;display:flex;justify-content:center}
+.app{width:100%;max-width:440px;min-height:100%;display:flex;flex-direction:column;padding:calc(20px + env(safe-area-inset-top)) 24px calc(24px + env(safe-area-inset-bottom))}
+header{display:flex;justify-content:space-between;align-items:center;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+button{background:none;border:0;color:inherit;cursor:pointer;font:inherit}
+.icon{width:44px;height:44px;display:grid;place-items:center;border-radius:50%}
+.icon svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.icon.on{color:var(--fg)} .icon.off{color:var(--mute)}
+.cover{margin:36px auto 0;width:100%;aspect-ratio:1;border-radius:6px;background:var(--card);display:grid;place-items:center;overflow:hidden;position:relative}
+.disc{width:42%;aspect-ratio:1;border-radius:50%;border:1px solid var(--mute);opacity:.5;position:relative}
+.disc::after{content:"";position:absolute;inset:44%;border-radius:50%;background:var(--mute)}
+.playing .disc{animation:spin 8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.meta{margin-top:32px}
+.title{font-size:22px;font-weight:600;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.artist{color:var(--mute);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar{margin-top:28px;height:24px;display:flex;align-items:center;cursor:pointer;touch-action:none}
+.track{position:relative;width:100%;height:2px;background:var(--line)}
+.fill{position:absolute;inset:0 auto 0 0;background:var(--fg);width:0}
+.knob{position:absolute;top:50%;width:10px;height:10px;border-radius:50%;background:var(--fg);transform:translate(-50%,-50%);left:0}
+.times{display:flex;justify-content:space-between;font-size:12px;color:var(--mute);font-variant-numeric:tabular-nums}
+.controls{display:flex;justify-content:space-between;align-items:center;margin-top:24px}
+.play{width:68px;height:68px;border-radius:50%;background:var(--fg);color:var(--bg);display:grid;place-items:center}
+.play svg{width:26px;height:26px;fill:currentColor}
+.main svg{width:28px;height:28px;fill:currentColor;stroke:none}
+.list{margin-top:36px;border-top:1px solid var(--line);flex:1}
+.item{display:flex;gap:14px;align-items:center;padding:14px 0;border-bottom:1px solid var(--line);width:100%;text-align:left}
+.item .n{width:20px;font-size:12px;color:var(--mute);font-variant-numeric:tabular-nums}
+.item .t{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item.active .t{font-weight:600}
+.item.active .n{color:var(--fg)}
+.empty{padding:40px 0;text-align:center;color:var(--mute)}
+.add{display:inline-block;margin-top:14px;padding:10px 22px;border:1px solid var(--fg);border-radius:999px;color:var(--fg)}
+input[type=file]{display:none}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <header>
+    <span>Reproduciendo</span>
+    <label class="icon" title="Añadir música" for="file"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></label>
+  </header>
+
+  <div class="cover" id="cover"><div class="disc"></div></div>
+
+  <div class="meta">
+    <div class="title" id="title">Sin canción</div>
+    <div class="artist" id="artist">Añade música desde tu teléfono</div>
+  </div>
+
+  <div class="bar" id="bar"><div class="track"><div class="fill" id="fill"></div><div class="knob" id="knob"></div></div></div>
+  <div class="times"><span id="cur">0:00</span><span id="dur">0:00</span></div>
+
+  <div class="controls">
+    <button class="icon off" id="shuffle" title="Aleatorio"><svg viewBox="0 0 24 24"><path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg></button>
+    <button class="icon main" id="prev" title="Anterior"><svg viewBox="0 0 24 24"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg></button>
+    <button class="play" id="play" title="Reproducir"><svg viewBox="0 0 24 24" id="playIcon"><path d="M8 5v14l11-7z"/></svg></button>
+    <button class="icon main" id="next" title="Siguiente"><svg viewBox="0 0 24 24"><path d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg></button>
+    <button class="icon off" id="repeat" title="Repetir"><svg viewBox="0 0 24 24"><path d="M17 2l4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3"/></svg></button>
+  </div>
+
+  <div class="list" id="list">
+    <div class="empty">Tu lista está vacía<br><label class="add" for="file">Elegir canciones</label></div>
+  </div>
+  <input type="file" id="file" accept="audio/*" multiple>
+</div>
+
+<audio id="audio" preload="metadata"></audio>
+
+<script>
+const $ = id => document.getElementById(id);
+const audio = $('audio');
+let songs = [], idx = -1, shuffle = false, repeat = false;
+const PLAY = '<path d="M8 5v14l11-7z"/>', PAUSE = '<path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/>';
+const fmt = s => isFinite(s) ? Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0') : '0:00';
+
+function parse(name){
+  const base = name.replace(/\.[^.]+$/, '').replace(/_/g,' ');
+  const p = base.split(' - ');
+  return p.length > 1 ? {artist:p[0].trim(), title:p.slice(1).join(' - ').trim()} : {artist:'Artista desconocido', title:base};
+}
+
+$('file').onchange = e => {
+  const files = [...e.target.files];
+  files.forEach(f => songs.push({url:URL.createObjectURL(f), ...parse(f.name)}));
+  render();
+  if (idx < 0 && songs.length) load(0, false);
+  e.target.value = '';
+};
+
+function render(){
+  if (!songs.length) return;
+  $('list').innerHTML = songs.map((s,i) =>
+    `<button class="item${i===idx?' active':''}" data-i="${i}"><span class="n">${String(i+1).padStart(2,'0')}</span><span class="t">${esc(s.title)}</span></button>`).join('');
+}
+const esc = t => t.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+$('list').onclick = e => { const b = e.target.closest('.item'); if (b) load(+b.dataset.i, true); };
+
+function load(i, autoplay){
+  idx = i; const s = songs[i];
+  audio.src = s.url;
+  $('title').textContent = s.title; $('artist').textContent = s.artist;
+  render();
+  if ('mediaSession' in navigator) navigator.mediaSession.metadata = new MediaMetadata({title:s.title, artist:s.artist});
+  if (autoplay) audio.play();
+}
+
+function toggle(){ if (idx < 0) return $('file').click(); audio.paused ? audio.play() : audio.pause(); }
+function next(){
+  if (!songs.length) return;
+  const n = shuffle && songs.length > 1 ? (idx + 1 + Math.floor(Math.random()*(songs.length-1))) % songs.length : (idx+1) % songs.length;
+  load(n, true);
+}
+function prev(){
+  if (!songs.length) return;
+  if (audio.currentTime > 3) { audio.currentTime = 0; return; }
+  load((idx - 1 + songs.length) % songs.length, true);
+}
+
+$('play').onclick = toggle; $('next').onclick = next; $('prev').onclick = prev;
+$('shuffle').onclick = e => { shuffle = !shuffle; e.currentTarget.className = 'icon ' + (shuffle?'on':'off'); };
+$('repeat').onclick = e => { repeat = !repeat; e.currentTarget.className = 'icon ' + (repeat?'on':'off'); };
+
+audio.onplay = () => { $('playIcon').innerHTML = PAUSE; $('app').classList.add('playing'); };
+audio.onpause = () => { $('playIcon').innerHTML = PLAY; $('app').classList.remove('playing'); };
+audio.onended = () => repeat ? (audio.currentTime = 0, audio.play()) : (idx < songs.length-1 || shuffle ? next() : null);
+audio.onloadedmetadata = () => $('dur').textContent = fmt(audio.duration);
+audio.ontimeupdate = () => {
+  if (dragging) return;
+  const p = audio.duration ? audio.currentTime / audio.duration * 100 : 0;
+  setBar(p); $('cur').textContent = fmt(audio.currentTime);
+};
+function setBar(p){ $('fill').style.width = p+'%'; $('knob').style.left = p+'%'; }
+
+let dragging = false;
+const bar = $('bar');
+const pct = e => { const r = bar.getBoundingClientRect(); return Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)); };
+bar.onpointerdown = e => { if (!audio.duration) return; dragging = true; bar.setPointerCapture(e.pointerId); setBar(pct(e)*100); };
+bar.onpointermove = e => { if (dragging) { setBar(pct(e)*100); $('cur').textContent = fmt(pct(e)*audio.duration); } };
+bar.onpointerup = e => { if (dragging) { audio.currentTime = pct(e)*audio.duration; dragging = false; } };
+
+if ('mediaSession' in navigator) {
+  navigator.mediaSession.setActionHandler('play', () => audio.play());
+  navigator.mediaSession.setActionHandler('pause', () => audio.pause());
+  navigator.mediaSession.setActionHandler('nexttrack', next);
+  navigator.mediaSession.setActionHandler('previoustrack', prev);
+}
+</script>
+</body>
+</html>
