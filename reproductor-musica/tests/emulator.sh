@@ -64,7 +64,7 @@ grep -E "REP|Capacitor/Console|FATAL|ActivityManager.*qsentry|ActivityTaskManage
   grep -q "REP headset triple" $OUT/logcat.txt && echo "OK auriculares triple toque = anterior" || echo "REVISAR triple toque"
   grep -q "REP crossfade" $OUT/logcat.txt && echo "OK transición suave entre canciones" || echo "FALLO transición"
   grep -q "REP viz-error" $OUT/logcat.txt && echo "FALLO visualizador" || echo "OK visualizador sin errores"
-  grep -q "REP widget ok" $OUT/logcat.txt && grep -q "com.qsentry.reproductor/.PlayerWidget" $OUT/widgets.txt && echo "OK widget registrado y actualizándose" || echo "REVISAR widget"
+  grep -q "REP widget ok" $OUT/logcat.txt && grep -q "com.qsentry.reproductor/com.qsentry.reproductor.PlayerWidget" $OUT/widgets.txt && echo "OK widget registrado y actualizándose" || echo "REVISAR widget"
   grep -q "FATAL EXCEPTION" $OUT/logcat-completo.txt && echo "FALLO crash detectado" || echo "OK sin crashes"
 } | tee $OUT/RESUMEN.txt
 rm -f $OUT/logcat-completo.txt
