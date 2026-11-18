@@ -1,0 +1,28 @@
+11-18 03:22:14.296   488   957 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.qsentry.reproductor/.MainActivity} from uid 2000
+11-18 03:22:14.409   488   524 I ActivityManager: Start proc 4809:com.qsentry.reproductor/u0a174 for next-top-activity {com.qsentry.reproductor/com.qsentry.reproductor.MainActivity}
+11-18 03:22:15.255   488   524 I ActivityManager: Start proc 4867:com.google.android.webview:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0/u0ai9000 for  {com.qsentry.reproductor/org.chromium.content.app.SandboxedProcessService0:0}
+11-18 03:22:15.380  4809  4809 D Capacitor: Registering plugin instance: MediaSession
+11-18 03:22:16.270   488   510 I ActivityTaskManager: Displayed com.qsentry.reproductor/.MainActivity: +1s930ms
+11-18 03:22:18.414  4809  4809 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 91203018, pluginId: MediaSession, methodName: setActionHandler
+11-18 03:22:18.422  4809  4809 V Capacitor: callback: 91203018, pluginId: MediaSession, methodName: setActionHandler, methodData: {"action":"play"}
+11-18 03:22:18.428  4809  4809 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 91203019, pluginId: MediaSession, methodName: setActionHandler
+11-18 03:22:18.429  4809  4809 V Capacitor: callback: 91203019, pluginId: MediaSession, methodName: setActionHandler, methodData: {"action":"pause"}
+11-18 03:22:18.429  4809  4809 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 91203020, pluginId: MediaSession, methodName: setActionHandler
+11-18 03:22:18.432  4809  4809 V Capacitor: callback: 91203020, pluginId: MediaSession, methodName: setActionHandler, methodData: {"action":"stop"}
+11-18 03:22:18.433  4809  4809 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 91203021, pluginId: MediaSession, methodName: setActionHandler
+11-18 03:22:18.433  4809  4809 V Capacitor: callback: 91203021, pluginId: MediaSession, methodName: setActionHandler, methodData: {"action":"nexttrack"}
+11-18 03:22:18.434  4809  4809 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 91203022, pluginId: MediaSession, methodName: setActionHandler
+11-18 03:22:18.440  4809  4809 V Capacitor: callback: 91203022, pluginId: MediaSession, methodName: setActionHandler, methodData: {"action":"previoustrack"}
+11-18 03:22:18.441  4809  4809 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 91203023, pluginId: MediaSession, methodName: setActionHandler
+11-18 03:22:18.441  4809  4809 V Capacitor: callback: 91203023, pluginId: MediaSession, methodName: setActionHandler, methodData: {"action":"seekto"}
+11-18 03:22:18.442  4809  4809 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 91203024, pluginId: MediaSession, methodName: setActionHandler
+11-18 03:22:18.442  4809  4809 V Capacitor: callback: 91203024, pluginId: MediaSession, methodName: setActionHandler, methodData: {"action":"seekforward"}
+11-18 03:22:18.443  4809  4809 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 91203025, pluginId: MediaSession, methodName: setActionHandler
+11-18 03:22:18.443  4809  4809 V Capacitor: callback: 91203025, pluginId: MediaSession, methodName: setActionHandler, methodData: {"action":"seekbackward"}
+11-18 03:22:19.612  4809  4809 I Capacitor/Console: File: https://localhost/ - Line 702 - Msg: REP scan 3 canciones, nuevas 3
+11-18 03:22:24.270  1748  1748 I BgTaskExecutorImpl: Starting EXCLUSIVE background task FETCH_LOCATION_REPORTING_STATE.
+11-18 03:22:38.718   488   523 D SystemServerTimingAsync: ssm.onUnlockedUser-0_com.android.server.media.MediaSessionService
+11-18 03:22:38.718   488   523 V SystemServerTimingAsync: ssm.onUnlockedUser-0_com.android.server.media.MediaSessionService took to complete: 0ms
+11-18 03:22:43.793   488  5479 D SystemServerTimingAsync: ssm.onCompletedEventUser-0_{|Unlocked|}_com.android.server.media.MediaSessionService
+11-18 03:22:43.793   488  5479 V SystemServerTimingAsync: ssm.onCompletedEventUser-0_{|Unlocked|}_com.android.server.media.MediaSessionService took to complete: 0ms
+11-18 03:22:51.847   488  2326 I BroadcastQueue: BOOT_COMPLETED_BROADCAST_COMPLETION_LATENCY_REPORTED action:android.intent.action.BOOT_COMPLETED dispatchLatency:330 completeLatency:13201 dispatchRealLatency:330 completeRealLatency:13201 receiversSize:157 userId:0 userType:android.os.usertype.full.SYSTEM
