@@ -258,6 +258,8 @@ h1{font-size:34px;letter-spacing:-.035em}
 .lhead .ac{border-radius:20px}
 .folder.wa{background:linear-gradient(150deg,#5be38a,#1fae5b)!important;color:#fff}
 .folder.wa .fi{background:rgba(255,255,255,.25)}.folder.wa small{opacity:.85}
+.lhead .ac svg{width:46px;height:46px;stroke-width:1.5}
+.lhead .ac.wa{background:linear-gradient(150deg,#5be38a,#1fae5b)!important;color:#fff}
 .hint{font-size:13px;color:var(--mute);background:var(--soft);border-radius:12px;padding:10px 12px;margin-bottom:8px}
 .row button.danger-btn{background:#e0453a!important;color:#fff}
 /* Animaciones */
@@ -544,10 +546,12 @@ function renderList(){
   art = (list.find(s => s.art)||{}).art;
   ini = v.type === 'folder' || v.type === 'all' || v.type === 'wa' ? '' : firstChar(name);
   $('lArt').style.background = color;
+  $('lArt').classList.toggle('wa', v.type === 'wa');
   $('lArt').innerHTML = art ? `<img src="${art}" alt="">` : (ini ? esc(ini) : (v.type === 'all' ? ICON_NOTE : v.type === 'wa' ? ICON_WA : ICON_FOLDER));
   $('lName').textContent = name; $('lKind').textContent = kind;
   const total = list.reduce((t,s) => t + (s.duration||0), 0);
-  $('lStats').textContent = `${list.length} ${list.length===1?'canción':'canciones'}${total ? ' · ' + Math.max(1, Math.round(total/60000)) + ' min' : ''}`;
+  const unit = v.type === 'wa' ? ['audio','audios'] : ['canción','canciones'];
+  $('lStats').textContent = `${list.length} ${list.length===1?unit[0]:unit[1]}${total ? ' · ' + Math.max(1, Math.round(total/60000)) + ' min' : ''}`;
   $('listMore').style.visibility = v.type === 'folder' || v.type === 'wa' ? 'visible' : 'hidden';
   $('lSongs').innerHTML = list.length ? list.map((s,i)=>songRow(s,i)).join('') : (v.type === 'folder' ? emptyBox('Esta carpeta está vacía') : '<div class="empty">Sin canciones</div>');
   if (v.type === 'wa' && list.length) $('lSongs').insertAdjacentHTML('afterbegin', '<p class="hint">Audios de WhatsApp y archivos sin duración. Se apartan de tu biblioteca para que no se mezclen con tu música.</p>');
