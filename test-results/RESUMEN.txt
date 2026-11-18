@@ -1,6 +1,0 @@
-== Resultado ==
-OK detecta música: REP scan 3 canciones
-FALLO reproducción
-REVISAR estado en segundo plano
-REVISAR servicio
-OK sin crashes

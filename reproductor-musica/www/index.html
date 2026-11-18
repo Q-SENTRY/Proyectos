@@ -186,8 +186,9 @@ body:not(.paused) .mini .art{animation:breathe 2.4s ease-in-out infinite}
 .artist .av{width:64px;height:64px;margin:0 auto 6px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:20px;color:rgba(22,22,22,.55);transition:transform .2s,box-shadow .2s}
 .artist.sel .av{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--fg);transform:scale(1.04)}
 .artist span{font-size:12px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.chips{display:flex;gap:6px}
-.chips button{font-size:12px;letter-spacing:0;text-transform:none;padding:6px 12px;border-radius:999px;color:var(--mute);background:transparent;transition:background .2s,color .2s}
+.chips{display:flex;gap:4px;flex-shrink:0}
+.label > span{white-space:nowrap}
+.chips button{white-space:nowrap;font-size:12px;letter-spacing:0;text-transform:none;padding:6px 12px;border-radius:999px;color:var(--mute);background:transparent;transition:background .2s,color .2s}
 .chips button.sel{background:var(--fg);color:var(--bg)}
 .dur{font-size:12px;color:var(--mute);font-variant-numeric:tabular-nums}
 .song.active .dur{display:none}
@@ -282,7 +283,7 @@ const esc = t => String(t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':
 const fmt = s => isFinite(s) ? Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0') : '0:00';
 const hash = s => [...s].reduce((h,c)=>(h*31+c.charCodeAt(0))|0,0);
 const songColor = s => COLORS[Math.abs(hash(s.artist+s.title)) % COLORS.length];
-const initials = s => (s.title.match(/[\p{L}\p{N}]/u)||['♪'])[0].toUpperCase();
+const initials = s => (s.title.match(/\p{L}/u)||s.title.match(/\p{N}/u)||['♪'])[0].toUpperCase();
 
 /* ---------- Almacenamiento (IndexedDB) ---------- */
 let db;

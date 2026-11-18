@@ -20,18 +20,13 @@ sleep 20
 adb shell dumpsys activity activities | grep -E "mResumedActivity|topResumedActivity" > $OUT/foreground.txt
 shot 1-biblioteca
 adb shell uiautomator dump /sdcard/ui.xml && adb pull /sdcard/ui.xml $OUT/ui.xml
-XY=$(python3 - <<'PY'
-import re
-x = open("test-results/ui.xml", encoding="utf-8").read()
-m = re.search(r'text="[^"]*Prueba Uno[^"]*"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"', x)
-print(f"{(int(m[1])+int(m[3]))//2} {(int(m[2])+int(m[4]))//2}" if m else "")
-PY
-)
-echo "Coordenadas: $XY"
-[ -n "$XY" ] && adb shell input tap $XY
+read W H < <(adb shell wm size | grep -o '[0-9]*x[0-9]*' | tail -1 | tr x ' ')
+echo "Pantalla: ${W}x${H}"
+# Primera canción de la lista (coordenadas relativas medidas en la captura)
+adb shell input tap $(( W * 40 / 100 )) $(( H * 829 / 1000 ))
 sleep 5
 shot 2-reproduciendo-mini
-adb shell input tap 540 $(( $(adb shell wm size | grep -o '[0-9]*$') - 150 ))
+adb shell input tap $(( W * 40 / 100 )) $(( H * 950 / 1000 ))
 sleep 3
 shot 3-reproductor
 adb shell input keyevent KEYCODE_HOME
