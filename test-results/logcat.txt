@@ -1,0 +1,63 @@
+11-18 03:10:04.981  5136  5136 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-18 03:10:04.988  5136  5136 I AndroidRuntime: Using default boot image
+11-18 03:10:04.989  5136  5136 I AndroidRuntime: Leaving lock profiling enabled
+11-18 03:10:05.155  5136  5136 D AndroidRuntime: Calling main entry com.android.commands.monkey.Monkey
+11-18 03:10:05.514  5136  5136 I AndroidRuntime: VM exiting with result code 0.
+11-18 03:10:05.748  1636  1636 I BgTaskExecutorImpl: Starting EXCLUSIVE background task FETCH_LOCATION_REPORTING_STATE.
+11-18 03:10:06.625  5163  5163 D Capacitor: Starting BridgeActivity
+11-18 03:10:06.655  5163  5163 D Capacitor: Registering plugin instance: CapacitorCookies
+11-18 03:10:06.662  5163  5163 D Capacitor: Registering plugin instance: WebView
+11-18 03:10:06.663  5163  5163 D Capacitor: Registering plugin instance: CapacitorHttp
+11-18 03:10:06.663  5163  5163 D Capacitor: Registering plugin instance: MusicLibrary
+11-18 03:10:06.664  5163  5163 D Capacitor: Registering plugin instance: MediaSession
+11-18 03:10:06.683  5163  5163 W Capacitor: Unable to read file at path public/plugins
+11-18 03:10:06.690  5163  5163 D Capacitor: Loading app at https://localhost
+11-18 03:10:06.813  5163  5163 D Capacitor: App started
+11-18 03:10:06.825  5163  5163 D Capacitor: App resumed
+11-18 03:10:06.874  5163  5213 D Capacitor: Handling local request: https://localhost/
+11-18 03:10:08.304  5163  5163 E Capacitor/Console: File:  - Line 821 - Msg: TypeError: window.Capacitor.registerPlugin is not a function
+11-18 03:10:08.307  5163  5163 E Capacitor: JavaScript Error: {"type":"js.error","error":{"message":"Uncaught TypeError: window.Capacitor.registerPlugin is not a function","url":"https://localhost/","line":606,"col":76,"errorObject":"{}"}}
+11-18 03:10:08.307  5163  5163 E Capacitor/Console: File: https://localhost/ - Line 606 - Msg: Uncaught TypeError: window.Capacitor.registerPlugin is not a function
+11-18 03:10:08.504  5163  5213 D Capacitor: Handling local request: https://localhost/icon.svg
+11-18 03:10:08.960  5150  5150 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:10:12.125  5422  5422 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:10:13.745  5498  5498 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:10:15.313  5539  5539 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:10:16.527  5568  5568 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:10:17.441  5627  5627 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:10:18.194  5650  5650 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:10:18.543  5681  5681 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:10:18.897  5700  5700 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:10:19.230  5727  5727 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:10:19.566  5746  5746 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:10:19.996  5780  5780 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:10:20.159  5803  5803 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:10:20.286  5821  5821 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:10:20.388  5837  5837 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:10:20.481  5855  5855 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:10:20.626  5873  5873 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:10:20.738  5890  5890 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:10:20.825  5908  5908 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:10:20.985  5932  5932 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:10:21.081  5950  5950 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:10:21.174  5969  5969 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:10:21.293  5988  5988 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:10:21.392  6006  6006 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:10:21.470  6024  6024 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:10:21.549  6041  6041 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:10:21.605  6060  6060 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:10:21.670  6077  6077 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:10:26.419  6453  6453 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-18 03:10:26.454  6453  6453 I AndroidRuntime: Using default boot image
+11-18 03:10:26.454  6453  6453 I AndroidRuntime: Leaving lock profiling enabled
+11-18 03:10:26.781  6453  6453 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-18 03:10:28.493  6453  6453 D AndroidRuntime: Shutting down VM
+11-18 03:10:40.481  6733  6733 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:10:40.586  6753  6753 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:10:40.656  6771  6771 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:10:40.720  6789  6789 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:10:49.897  6846  6846 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:10:49.966  6864  6864 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:10:50.022  6881  6881 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:10:50.083  6899  6899 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:10:50.133  6916  6916 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
