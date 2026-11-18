@@ -20,7 +20,28 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
       fs.writeFileSync('test-results/2-reproduciendo-mini.png', await device.screenshot());
       await page.click('#mini .info'); await sleep(2500);
       fs.writeFileSync('test-results/3-reproductor.png', await device.screenshot());
+      // Adelantar dentro de una canción del teléfono (barra de progreso y "retomar donde te quedaste")
+      const seek = await page.evaluate(async () => {
+        const a = [...document.querySelectorAll('audio')].find(x => !x.paused); if (!a) return 'sin audio';
+        a.currentTime = 7; await new Promise(r => setTimeout(r, 1500)); return a.currentTime;
+      });
+      ok('adelantar la canción (posición tras saltar a 0:07: ' + (typeof seek === 'number' ? seek.toFixed(1) : seek) + ')', typeof seek === 'number' && seek >= 7);
       ok('toca canción y abre reproductor', logs.some(l => l.includes('REP play')) || await page.evaluate(() => [...document.querySelectorAll('audio')].some(a => !a.paused)));
+      return;
+    }
+    if (process.argv[2] === 'bg') {
+      // Con la app en segundo plano: ¿el sonido realmente fluye?
+      const r = await page.evaluate(async () => {
+        const a = [...document.querySelectorAll('audio')].find(x => !x.paused);
+        const t0 = a ? a.currentTime : -1;
+        await new Promise(res => setTimeout(res, 2000));
+        const t1 = a ? a.currentTime : -1;
+        let energy = -1, state = 'sin AudioContext';
+        if (typeof actx !== 'undefined' && actx) { state = actx.state; const d = new Uint8Array(analyser.frequencyBinCount); analyser.getByteFrequencyData(d); energy = d.reduce((x, y) => x + y, 0); }
+        return { hidden: document.hidden, avanza: +(t1 - t0).toFixed(2), state, energy };
+      });
+      ok(`segundo plano: la canción avanza ${r.avanza}s en 2s (app oculta: ${r.hidden})`, r.avanza > 1);
+      ok(`segundo plano: motor de audio ${r.state}, señal ${r.energy}`, r.state === 'running' && r.energy > 0);
       return;
     }
     await page.evaluate(() => { document.querySelectorAll('.sheet.show,.player.open').forEach(e => e.classList.remove('show', 'open')); document.getElementById('scrim').classList.remove('show'); });

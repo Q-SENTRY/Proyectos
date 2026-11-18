@@ -1007,7 +1007,11 @@ function load(autoplay, crossfade){
   dir = 0;
   native.meta(current); updateWidget(); saveResume();
 }
-function toggle(){ if (!current) return lib().length ? playList(sorted(lib()),0) : pickFiles(null); el().paused ? el().play() : el().pause(); }
+function toggle(){
+  if (!current) return lib().length ? playList(sorted(lib()),0) : pickFiles(null);
+  if (el().paused) { if (actx && actx.state === 'suspended') actx.resume(); el().play(); }
+  else { if (fadingEl) { fadingEl.pause(); fadingEl = null; setVol(el(), 1); } el().pause(); }
+}
 function nextIndex(){
   if (!queue.length) return -1;
   if (shuffle && queue.length > 1) { let n; do n = Math.floor(Math.random()*queue.length); while (n === qi); return n; }
@@ -1115,7 +1119,7 @@ function drawViz(){
   for (let i = 0; i < N; i++) {
     let v;
     if (data) { const idx = 1 + Math.floor(Math.pow(i / N, 1.7) * (data.length * .7)); v = data[idx] / 255; }
-    else v = playing && settings.viz ? (Math.sin(fakeT + i*.5) * .5 + .5) * .5 * (0.4 + .6*Math.sin(fakeT*.7 + i*.21)**2) : 0;
+    else v = 0;   // sin análisis de audio real no se inventan ondas
     const bh = Math.max(3, v * h);
     vctx.globalAlpha = .35 + v * .65;
     const x = i * (bw + gap), y = (h - bh) / 2;
@@ -1166,12 +1170,12 @@ function headsetTap(){
   }, 450);
 }
 function tripleCheck(){
-  if (Date.now() - lastNextAt < 1200) { lastNextAt = 0; console.log('REP headset triple'); prev(); prev(); el().play().catch(()=>{}); return true; }
+  if (Date.now() - lastNextAt < 800) { lastNextAt = 0; console.log('REP headset triple'); prev(); prev(); el().play().catch(()=>{}); return true; }
   return false;
 }
 const handlers = {
   play: () => { if (!isNative) return headsetTap(); if (!tripleCheck()) el().play(); },
-  pause: () => { if (!isNative) return headsetTap(); if (!tripleCheck()) el().pause(); },
+  pause: () => { if (!isNative) return headsetTap(); if (!tripleCheck() && !el().paused) toggle(); },
   stop: () => el().pause(),
   nexttrack: () => { lastNextAt = Date.now(); console.log('REP accion siguiente'); next(); },
   previoustrack: () => prev(),
@@ -1186,12 +1190,15 @@ setInterval(() => { if (!el().paused) native.pos(); }, 5000);
 
 /* ---------- Widget de pantalla de inicio ---------- */
 const Lib = isNative ? window.Capacitor.registerPlugin('MusicLibrary') : null;
-let widgetT;
+let widgetT, lastWidgetArt = '';
 function updateWidget(){
   if (!Lib || !current) return;
   clearTimeout(widgetT);
   widgetT = setTimeout(() => {
-    Lib.updateWidget({title:current.title, artist:current.artist, playing:!el().paused, art:current.art || artwork(current)})
+    const artKey = current.id + ':' + (current.art ? current.art.length : 0);
+    const o = {title:current.title, artist:current.artist, playing:!el().paused};
+    if (artKey !== lastWidgetArt) { o.art = current.art || artwork(current); lastWidgetArt = artKey; }
+    Lib.updateWidget(o)
       .then(() => console.log('REP widget ok')).catch(e => console.log('REP widget-error ' + e.message));
   }, 150);
 }

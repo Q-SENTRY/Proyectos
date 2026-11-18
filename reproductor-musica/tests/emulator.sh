@@ -24,7 +24,9 @@ adb shell content query --uri content://media/external/audio/media --projection 
 adb shell pm grant $PKG android.permission.READ_MEDIA_AUDIO
 adb shell pm grant $PKG android.permission.POST_NOTIFICATIONS
 adb logcat -c
-adb shell am start -W -n $PKG/.MainActivity
+adb shell am start -n $PKG/.MainActivity
+sleep 1.2
+shot 0-pantalla-de-carga
 sleep 20
 adb shell dumpsys activity activities | grep -E "mResumedActivity|topResumedActivity" > $OUT/foreground.txt
 shot 1-biblioteca
@@ -33,6 +35,7 @@ front
 node reproductor-musica/tests/android-e2e.js play
 adb shell input keyevent KEYCODE_HOME
 sleep 15
+node reproductor-musica/tests/android-e2e.js bg
 adb shell dumpsys media_session > $OUT/media_session.txt
 # Auriculares: doble toque = siguiente
 adb logcat -d | grep -c "REP accion siguiente" > /tmp/n0
@@ -52,8 +55,16 @@ adb shell content query --uri content://media/external/audio/media --projection 
 adb shell dumpsys activity services $PKG > $OUT/servicios.txt
 adb shell cmd statusbar expand-notifications; sleep 3
 shot 4-segundo-plano-notificacion
+adb shell cmd statusbar collapse
+adb shell locksettings set-pin 1234
 adb shell input keyevent KEYCODE_SLEEP; sleep 3; adb shell input keyevent KEYCODE_WAKEUP; sleep 3
 shot 5-pantalla-bloqueada
+adb shell dumpsys window | grep -i "mDreamingLockscreen\|isKeyguardShowing\|mShowingLockscreen" > $OUT/bloqueo.txt
+adb shell input text 1234; adb shell input keyevent KEYCODE_ENTER; sleep 2
+adb shell locksettings clear --old 1234
+adb shell input keyevent KEYCODE_HOME; sleep 2
+adb shell input swipe 160 560 160 120 300; sleep 2
+shot 11-cajon-de-apps
 adb logcat -d > $OUT/logcat-completo.txt
 grep -E "REP|Capacitor/Console|FATAL|ActivityManager.*qsentry|ActivityTaskManager.*qsentry|MediaSession" $OUT/logcat-completo.txt > $OUT/logcat.txt
 {
