@@ -15,8 +15,9 @@ adb shell content query --uri content://media/external/audio/media --projection 
 adb shell pm grant $PKG android.permission.READ_MEDIA_AUDIO
 adb shell pm grant $PKG android.permission.POST_NOTIFICATIONS
 adb logcat -c
-adb shell monkey -p $PKG -c android.intent.category.LAUNCHER 1
+adb shell am start -W -n $PKG/.MainActivity
 sleep 20
+adb shell dumpsys activity activities | grep -E "mResumedActivity|topResumedActivity" > $OUT/foreground.txt
 shot 1-biblioteca
 adb shell uiautomator dump /sdcard/ui.xml && adb pull /sdcard/ui.xml $OUT/ui.xml
 XY=$(python3 - <<'PY'
@@ -42,7 +43,7 @@ shot 4-segundo-plano-notificacion
 adb shell input keyevent KEYCODE_SLEEP; sleep 3; adb shell input keyevent KEYCODE_WAKEUP; sleep 3
 shot 5-pantalla-bloqueada
 adb logcat -d > $OUT/logcat-completo.txt
-grep -E "REP|Capacitor|AndroidRuntime|MediaSession" $OUT/logcat-completo.txt > $OUT/logcat.txt
+grep -E "REP|Capacitor/Console|FATAL|ActivityManager.*qsentry|ActivityTaskManager.*qsentry|MediaSession" $OUT/logcat-completo.txt > $OUT/logcat.txt
 {
   echo "== Resultado =="
   grep -q "REP scan .* canciones" $OUT/logcat.txt && echo "OK detecta música: $(grep -o 'REP scan [0-9]* canciones' $OUT/logcat.txt | tail -1)" || echo "FALLO detección"
