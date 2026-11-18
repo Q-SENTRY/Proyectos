@@ -1,0 +1,1 @@
+    topResumedActivity=ActivityRecord{a023abb u0 com.qsentry.reproductor/.MainActivity} t9}
