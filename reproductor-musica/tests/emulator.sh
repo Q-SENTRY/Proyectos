@@ -22,7 +22,7 @@ adb shell uiautomator dump /sdcard/ui.xml && adb pull /sdcard/ui.xml $OUT/ui.xml
 XY=$(python3 - <<'PY'
 import re
 x = open("test-results/ui.xml", encoding="utf-8").read()
-m = re.search(r'text="Prueba Uno"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"', x) or re.search(r'bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"[^>]*text="Prueba Uno"', x)
+m = re.search(r'text="[^"]*Prueba Uno[^"]*"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"', x)
 print(f"{(int(m[1])+int(m[3]))//2} {(int(m[2])+int(m[4]))//2}" if m else "")
 PY
 )
