@@ -958,6 +958,11 @@ $('settingsBtn').onclick = settingsSheet;
 
 /* ---------- Motor de audio: dos reproductores para mezclar ---------- */
 const players = [$('audioA'), $('audioB')];
+/* En la app de Android document.hidden no cambia: usamos también los eventos pause/resume de Capacitor */
+let appPaused = false;
+document.addEventListener('pause', () => { appPaused = true; });
+document.addEventListener('resume', () => { appPaused = false; if (actx && actx.state === 'suspended' && !el().paused) actx.resume(); startViz(); });
+const isHidden = () => document.hidden || appPaused;
 let active = 0, fadingEl = null, fadeTarget = null, dir = 0;
 const el = () => players[active];
 const other = () => players[1 - active];
@@ -1000,7 +1005,7 @@ function load(autoplay, crossfade){
     if (autoplay) el().play().catch(()=>{});
   }
   const pl = $('player'), cv = $('cover');
-  if (prevSong && pl.classList.contains('open') && dir && !document.hidden) {
+  if (prevSong && pl.classList.contains('open') && dir && !isHidden()) {
     cv.className = 'cover ' + (dir > 0 ? 'out-l' : 'out-r'); pl.classList.add('swap');
     setTimeout(() => { renderNow(); cv.className = 'cover ' + (dir > 0 ? 'in-l' : 'in-r'); pl.classList.remove('swap'); }, 220);
   } else { renderNow(); if (!prevSong) { $('mini').classList.remove('bounce'); void $('mini').offsetWidth; $('mini').classList.add('bounce'); } }
@@ -1104,7 +1109,7 @@ const viz = $('viz'), vctx = viz.getContext('2d');
 let vizOn = false, fakeT = 0;
 function startViz(){ if (vizOn) return; vizOn = true; requestAnimationFrame(drawViz); }
 function drawViz(){
-  const open = $('player').classList.contains('open') && !document.hidden;
+  const open = $('player').classList.contains('open') && !isHidden();
   if (!open) { vizOn = false; return; }
   const dpr = window.devicePixelRatio || 1, w = viz.clientWidth, h = viz.clientHeight;
   if (viz.width !== w*dpr) { viz.width = w*dpr; viz.height = h*dpr; }

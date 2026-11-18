@@ -1,9 +1,0 @@
-OK adelantar la canción (posición tras saltar a 0:07: 8.5)
-OK toca canción y abre reproductor
-OK segundo plano: la canción avanza 2.02s en 2s (app oculta: false)
-OK segundo plano: motor de audio running, señal 1112
-OK biblioteca sin audios de WhatsApp (01 Prueba Uno, 02 Prueba Dos, 03 Cancion Tres)
-OK carpeta WhatsApp creada: 2 audios
-OK dentro de WhatsApp: AUD-20250101-WA0001, beep
-OK diálogo de Android para confirmar el borrado
-OK "AUD-20250101-WA0001" eliminado (quedan: beep)

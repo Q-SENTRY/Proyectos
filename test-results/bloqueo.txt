@@ -1,2 +1,0 @@
-    mShowingDream=false mDreamingLockscreen=true
-    isKeyguardShowing=true
