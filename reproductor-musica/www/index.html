@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#f5f4f0">
 <title>Reproductor</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <style>
 :root{--bg:#f5f4f0;--fg:#1a1a1a;--mute:#8a8780;--line:#e2e0da;--card:#ebe9e3}
 @media (prefers-color-scheme:dark){:root{--bg:#121212;--fg:#ededeb;--mute:#77756f;--line:#262624;--card:#1c1c1b}}
@@ -156,6 +159,7 @@ if ('mediaSession' in navigator) {
   navigator.mediaSession.setActionHandler('nexttrack', next);
   navigator.mediaSession.setActionHandler('previoustrack', prev);
 }
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js');
 </script>
 </body>
 </html>
