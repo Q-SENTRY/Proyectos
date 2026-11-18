@@ -1,63 +1,70 @@
-11-18 03:10:04.981  5136  5136 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
-11-18 03:10:04.988  5136  5136 I AndroidRuntime: Using default boot image
-11-18 03:10:04.989  5136  5136 I AndroidRuntime: Leaving lock profiling enabled
-11-18 03:10:05.155  5136  5136 D AndroidRuntime: Calling main entry com.android.commands.monkey.Monkey
-11-18 03:10:05.514  5136  5136 I AndroidRuntime: VM exiting with result code 0.
-11-18 03:10:05.748  1636  1636 I BgTaskExecutorImpl: Starting EXCLUSIVE background task FETCH_LOCATION_REPORTING_STATE.
-11-18 03:10:06.625  5163  5163 D Capacitor: Starting BridgeActivity
-11-18 03:10:06.655  5163  5163 D Capacitor: Registering plugin instance: CapacitorCookies
-11-18 03:10:06.662  5163  5163 D Capacitor: Registering plugin instance: WebView
-11-18 03:10:06.663  5163  5163 D Capacitor: Registering plugin instance: CapacitorHttp
-11-18 03:10:06.663  5163  5163 D Capacitor: Registering plugin instance: MusicLibrary
-11-18 03:10:06.664  5163  5163 D Capacitor: Registering plugin instance: MediaSession
-11-18 03:10:06.683  5163  5163 W Capacitor: Unable to read file at path public/plugins
-11-18 03:10:06.690  5163  5163 D Capacitor: Loading app at https://localhost
-11-18 03:10:06.813  5163  5163 D Capacitor: App started
-11-18 03:10:06.825  5163  5163 D Capacitor: App resumed
-11-18 03:10:06.874  5163  5213 D Capacitor: Handling local request: https://localhost/
-11-18 03:10:08.304  5163  5163 E Capacitor/Console: File:  - Line 821 - Msg: TypeError: window.Capacitor.registerPlugin is not a function
-11-18 03:10:08.307  5163  5163 E Capacitor: JavaScript Error: {"type":"js.error","error":{"message":"Uncaught TypeError: window.Capacitor.registerPlugin is not a function","url":"https://localhost/","line":606,"col":76,"errorObject":"{}"}}
-11-18 03:10:08.307  5163  5163 E Capacitor/Console: File: https://localhost/ - Line 606 - Msg: Uncaught TypeError: window.Capacitor.registerPlugin is not a function
-11-18 03:10:08.504  5163  5213 D Capacitor: Handling local request: https://localhost/icon.svg
-11-18 03:10:08.960  5150  5150 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
-11-18 03:10:12.125  5422  5422 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
-11-18 03:10:13.745  5498  5498 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
-11-18 03:10:15.313  5539  5539 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
-11-18 03:10:16.527  5568  5568 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
-11-18 03:10:17.441  5627  5627 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
-11-18 03:10:18.194  5650  5650 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
-11-18 03:10:18.543  5681  5681 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
-11-18 03:10:18.897  5700  5700 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
-11-18 03:10:19.230  5727  5727 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
-11-18 03:10:19.566  5746  5746 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
-11-18 03:10:19.996  5780  5780 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
-11-18 03:10:20.159  5803  5803 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
-11-18 03:10:20.286  5821  5821 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
-11-18 03:10:20.388  5837  5837 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
-11-18 03:10:20.481  5855  5855 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
-11-18 03:10:20.626  5873  5873 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
-11-18 03:10:20.738  5890  5890 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
-11-18 03:10:20.825  5908  5908 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
-11-18 03:10:20.985  5932  5932 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
-11-18 03:10:21.081  5950  5950 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
-11-18 03:10:21.174  5969  5969 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
-11-18 03:10:21.293  5988  5988 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
-11-18 03:10:21.392  6006  6006 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
-11-18 03:10:21.470  6024  6024 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
-11-18 03:10:21.549  6041  6041 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
-11-18 03:10:21.605  6060  6060 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
-11-18 03:10:21.670  6077  6077 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
-11-18 03:10:26.419  6453  6453 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
-11-18 03:10:26.454  6453  6453 I AndroidRuntime: Using default boot image
-11-18 03:10:26.454  6453  6453 I AndroidRuntime: Leaving lock profiling enabled
-11-18 03:10:26.781  6453  6453 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
-11-18 03:10:28.493  6453  6453 D AndroidRuntime: Shutting down VM
-11-18 03:10:40.481  6733  6733 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
-11-18 03:10:40.586  6753  6753 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
-11-18 03:10:40.656  6771  6771 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
-11-18 03:10:40.720  6789  6789 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
-11-18 03:10:49.897  6846  6846 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
-11-18 03:10:49.966  6864  6864 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
-11-18 03:10:50.022  6881  6881 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
-11-18 03:10:50.083  6899  6899 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
-11-18 03:10:50.133  6916  6916 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:16:14.383  5463  5463 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-18 03:16:14.387  5463  5463 I AndroidRuntime: Using default boot image
+11-18 03:16:14.387  5463  5463 I AndroidRuntime: Leaving lock profiling enabled
+11-18 03:16:14.514  5463  5463 D AndroidRuntime: Calling main entry com.android.commands.monkey.Monkey
+11-18 03:16:14.753  5463  5463 I AndroidRuntime: VM exiting with result code 0.
+11-18 03:16:15.906  5481  5481 D Capacitor: Starting BridgeActivity
+11-18 03:16:15.935  5481  5481 D Capacitor: Registering plugin instance: CapacitorCookies
+11-18 03:16:15.942  5481  5481 D Capacitor: Registering plugin instance: WebView
+11-18 03:16:15.943  5481  5481 D Capacitor: Registering plugin instance: CapacitorHttp
+11-18 03:16:15.949  5481  5481 D Capacitor: Registering plugin instance: MusicLibrary
+11-18 03:16:15.951  5481  5481 D Capacitor: Registering plugin instance: MediaSession
+11-18 03:16:15.967  5481  5481 W Capacitor: Unable to read file at path public/plugins
+11-18 03:16:15.972  5481  5481 D Capacitor: Loading app at https://localhost
+11-18 03:16:16.013  5481  5481 D Capacitor: App started
+11-18 03:16:16.018  5481  5481 D Capacitor: App resumed
+11-18 03:16:16.060  5481  5550 D Capacitor: Handling local request: https://localhost/
+11-18 03:16:17.294  5481  5534 D Capacitor: Handling local request: https://localhost/capacitor.js
+11-18 03:16:17.571  5481  5481 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 5843986, pluginId: MediaSession, methodName: setActionHandler
+11-18 03:16:17.572  5481  5481 V Capacitor: callback: 5843986, pluginId: MediaSession, methodName: setActionHandler, methodData: {"action":"play"}
+11-18 03:16:17.611  5481  5481 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 5843987, pluginId: MediaSession, methodName: setActionHandler
+11-18 03:16:17.611  5481  5481 V Capacitor: callback: 5843987, pluginId: MediaSession, methodName: setActionHandler, methodData: {"action":"pause"}
+11-18 03:16:17.630  5481  5481 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 5843988, pluginId: MediaSession, methodName: setActionHandler
+11-18 03:16:17.630  5481  5481 V Capacitor: callback: 5843988, pluginId: MediaSession, methodName: setActionHandler, methodData: {"action":"stop"}
+11-18 03:16:17.631  5481  5481 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 5843989, pluginId: MediaSession, methodName: setActionHandler
+11-18 03:16:17.631  5481  5481 V Capacitor: callback: 5843989, pluginId: MediaSession, methodName: setActionHandler, methodData: {"action":"nexttrack"}
+11-18 03:16:17.632  5481  5481 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 5843990, pluginId: MediaSession, methodName: setActionHandler
+11-18 03:16:17.632  5481  5481 V Capacitor: callback: 5843990, pluginId: MediaSession, methodName: setActionHandler, methodData: {"action":"previoustrack"}
+11-18 03:16:17.638  5481  5481 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 5843991, pluginId: MediaSession, methodName: setActionHandler
+11-18 03:16:17.638  5481  5481 V Capacitor: callback: 5843991, pluginId: MediaSession, methodName: setActionHandler, methodData: {"action":"seekto"}
+11-18 03:16:17.639  5481  5481 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 5843992, pluginId: MediaSession, methodName: setActionHandler
+11-18 03:16:17.639  5481  5481 V Capacitor: callback: 5843992, pluginId: MediaSession, methodName: setActionHandler, methodData: {"action":"seekforward"}
+11-18 03:16:17.639  5481  5481 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 5843993, pluginId: MediaSession, methodName: setActionHandler
+11-18 03:16:17.639  5481  5481 V Capacitor: callback: 5843993, pluginId: MediaSession, methodName: setActionHandler, methodData: {"action":"seekbackward"}
+11-18 03:16:18.006  5481  5531 D Capacitor: Handling local request: https://localhost/icon.svg
+11-18 03:16:19.509  5481  5481 E Capacitor/Console: File: https://localhost/ - Line 0 - Msg: Uncaught (in promise) TypeError: Failed to register a ServiceWorker for scope ('https://localhost/') with script ('https://localhost/sw.js'): An unknown error occurred when fetching the script.
+11-18 03:16:19.510  5481  5481 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 5843994, pluginId: MusicLibrary, methodName: status
+11-18 03:16:19.514  5481  5481 V Capacitor: callback: 5843994, pluginId: MusicLibrary, methodName: status, methodData: {}
+11-18 03:16:20.203  5481  5481 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 5843995, pluginId: MusicLibrary, methodName: scan
+11-18 03:16:20.203  5481  5481 V Capacitor: callback: 5843995, pluginId: MusicLibrary, methodName: scan, methodData: {}
+11-18 03:16:20.595  5481  5481 I Capacitor/Console: File: https://localhost/ - Line 702 - Msg: REP scan 3 canciones, nuevas 3
+11-18 03:16:20.675  5481  5481 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 5843996, pluginId: MusicLibrary, methodName: artwork
+11-18 03:16:20.676  5481  5481 V Capacitor: callback: 5843996, pluginId: MusicLibrary, methodName: artwork, methodData: {"uri":"content:\/\/media\/external\/audio\/media\/1000000016","albumId":6539316500227728000}
+11-18 03:16:21.169  5481  5481 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 5843997, pluginId: MusicLibrary, methodName: artwork
+11-18 03:16:21.169  5481  5481 V Capacitor: callback: 5843997, pluginId: MusicLibrary, methodName: artwork, methodData: {"uri":"content:\/\/media\/external\/audio\/media\/1000000017","albumId":6539316500227728000}
+11-18 03:16:21.239  5481  5481 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 5843998, pluginId: MusicLibrary, methodName: artwork
+11-18 03:16:21.240  5481  5481 V Capacitor: callback: 5843998, pluginId: MusicLibrary, methodName: artwork, methodData: {"uri":"content:\/\/media\/external\/audio\/media\/1000000018","albumId":6539316500227728000}
+11-18 03:16:25.973  5862  5862 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:16:26.043  5882  5882 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:16:26.099  5899  5899 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:16:26.143  5916  5916 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:16:26.203  5933  5933 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:16:27.716  5956  5956 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:16:27.773  5974  5974 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:16:27.819  5991  5991 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:16:27.875  6008  6008 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:16:29.078  6051  6051 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:16:29.183  6069  6069 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:16:29.263  6087  6087 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:16:35.427  6496  6496 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-18 03:16:35.452  6496  6496 I AndroidRuntime: Using default boot image
+11-18 03:16:35.453  6496  6496 I AndroidRuntime: Leaving lock profiling enabled
+11-18 03:16:35.688  6496  6496 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-18 03:16:36.792  6496  6496 D AndroidRuntime: Shutting down VM
+11-18 03:16:44.809  6673  6673 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:16:44.925  6692  6692 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:16:45.025  6710  6710 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:16:45.110  6727  6727 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:16:49.352  6814  6814 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:16:49.426  6833  6833 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-18 03:16:49.489  6850  6850 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
