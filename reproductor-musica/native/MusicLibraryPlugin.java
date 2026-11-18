@@ -22,6 +22,13 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 import com.getcapacitor.annotation.Permission;
 import com.getcapacitor.annotation.PermissionCallback;
 
+import android.app.Activity;
+import android.app.PendingIntent;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.IntentSenderRequest;
+import androidx.activity.result.contract.ActivityResultContracts;
+import java.util.ArrayList;
+import java.util.List;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 
@@ -29,15 +36,65 @@ import java.io.InputStream;
     name = "MusicLibrary",
     permissions = {
         @Permission(alias = "audio", strings = { Manifest.permission.READ_MEDIA_AUDIO }),
-        @Permission(alias = "storage", strings = { Manifest.permission.READ_EXTERNAL_STORAGE })
+        @Permission(alias = "storage", strings = { Manifest.permission.READ_EXTERNAL_STORAGE }),
+        @Permission(alias = "write", strings = { Manifest.permission.WRITE_EXTERNAL_STORAGE })
     }
 )
 public class MusicLibraryPlugin extends Plugin {
 
     static MusicLibraryPlugin instance;
 
+    private PluginCall pendingDelete;
+    private ActivityResultLauncher<IntentSenderRequest> deleteLauncher;
+
     @Override
-    public void load() { instance = this; }
+    public void load() {
+        instance = this;
+        // Diálogo del sistema para confirmar el borrado (Android 11+)
+        deleteLauncher = getActivity().registerForActivityResult(new ActivityResultContracts.StartIntentSenderForResult(), res -> {
+            PluginCall c = pendingDelete; pendingDelete = null;
+            if (c == null) return;
+            JSObject r = new JSObject();
+            r.put("deleted", res.getResultCode() == Activity.RESULT_OK);
+            c.resolve(r);
+        });
+    }
+
+    /** Borra archivos de audio del teléfono. En Android 11+ el sistema pide confirmación. */
+    @PluginMethod
+    public void deleteFiles(PluginCall call) {
+        List<Uri> uris = new ArrayList<>();
+        try {
+            JSArray arr = call.getArray("uris");
+            for (int i = 0; i < arr.length(); i++) uris.add(Uri.parse(arr.getString(i)));
+        } catch (Exception e) { call.reject("Lista de archivos inválida"); return; }
+        if (uris.isEmpty()) { call.reject("Nada que borrar"); return; }
+        if (Build.VERSION.SDK_INT >= 30) {
+            try {
+                PendingIntent pi = MediaStore.createDeleteRequest(getContext().getContentResolver(), uris);
+                pendingDelete = call;
+                deleteLauncher.launch(new IntentSenderRequest.Builder(pi.getIntentSender()).build());
+            } catch (Exception e) { pendingDelete = null; call.reject("No se pudo borrar: " + e.getMessage()); }
+            return;
+        }
+        if (getPermissionState("write") != PermissionState.GRANTED) { requestPermissionForAlias("write", call, "writeCallback"); return; }
+        legacyDelete(call, uris);
+    }
+
+    @PermissionCallback
+    private void writeCallback(PluginCall call) {
+        if (getPermissionState("write") != PermissionState.GRANTED) { JSObject r = new JSObject(); r.put("deleted", false); call.resolve(r); return; }
+        deleteFiles(call);
+    }
+
+    private void legacyDelete(PluginCall call, List<Uri> uris) {
+        int n = 0;
+        for (Uri u : uris) { try { n += getContext().getContentResolver().delete(u, null, null); } catch (Exception ignored) {} }
+        JSObject r = new JSObject();
+        r.put("deleted", n > 0);
+        r.put("count", n);
+        call.resolve(r);
+    }
 
     /** Llamado por el widget cuando se toca un botón. */
     void fromWidget(String action) {
@@ -101,12 +158,14 @@ public class MusicLibraryPlugin extends Plugin {
     private void doScan(PluginCall call) {
         new Thread(() -> {
             Uri col = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+            String pathCol = Build.VERSION.SDK_INT >= 29 ? MediaStore.Audio.Media.RELATIVE_PATH : MediaStore.Audio.Media.DATA;
             String[] proj = {
                 MediaStore.Audio.Media._ID, MediaStore.Audio.Media.TITLE, MediaStore.Audio.Media.ARTIST,
                 MediaStore.Audio.Media.ALBUM, MediaStore.Audio.Media.ALBUM_ID, MediaStore.Audio.Media.DURATION,
-                MediaStore.Audio.Media.DATE_ADDED
+                MediaStore.Audio.Media.DATE_ADDED, pathCol, MediaStore.Audio.Media.DISPLAY_NAME
             };
-            String sel = MediaStore.Audio.Media.IS_MUSIC + " != 0";
+            // Música + cualquier audio guardado por WhatsApp (notas de voz incluidas)
+            String sel = MediaStore.Audio.Media.IS_MUSIC + " != 0 OR " + pathCol + " LIKE '%WhatsApp%'";
             JSArray songs = new JSArray();
             try (Cursor c = getContext().getContentResolver().query(col, proj, sel, null,
                     MediaStore.Audio.Media.TITLE + " COLLATE NOCASE ASC")) {
@@ -122,6 +181,8 @@ public class MusicLibraryPlugin extends Plugin {
                         s.put("albumId", c.getLong(4));
                         s.put("duration", c.getLong(5));
                         s.put("added", c.getLong(6));
+                        s.put("path", c.getString(7));
+                        s.put("file", c.getString(8));
                         s.put("uri", ContentUris.withAppendedId(col, id).toString());
                         songs.put(s);
                     }

@@ -12,6 +12,12 @@ adb install -r reproductor-musica/android/app/build/outputs/apk/final/app.apk
 python3 reproductor-musica/tests/make_audio.py /tmp/musica
 adb shell mkdir -p /sdcard/Music
 for f in /tmp/musica/*.wav; do adb push "$f" /sdcard/Music/; done
+# Audios de WhatsApp y un sonido de 0:00
+python3 reproductor-musica/tests/make_audio.py /tmp/extra extra
+WA="/sdcard/Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Audio"
+adb shell mkdir -p "\"$WA\""
+adb push /tmp/extra/AUD-20250101-WA0001.wav "$WA/"
+adb push /tmp/extra/beep.wav /sdcard/Music/
 adb shell content call --uri content://media --method scan_volume --arg external_primary
 sleep 8
 adb shell content query --uri content://media/external/audio/media --projection title:artist:is_music > $OUT/mediastore.txt
@@ -23,17 +29,8 @@ sleep 20
 adb shell dumpsys activity activities | grep -E "mResumedActivity|topResumedActivity" > $OUT/foreground.txt
 shot 1-biblioteca
 adb shell uiautomator dump /sdcard/ui.xml && adb pull /sdcard/ui.xml $OUT/ui.xml
-read W H < <(adb shell wm size | grep -o '[0-9]*x[0-9]*' | tail -1 | tr x ' ')
-echo "Pantalla: ${W}x${H}"
-# Primera canción de la lista (coordenadas relativas medidas en la captura)
 front
-adb shell input tap $(( W * 40 / 100 )) $(( H * 855 / 1000 ))
-sleep 5
-shot 2-reproduciendo-mini
-front
-adb shell input tap $(( W * 40 / 100 )) $(( H * 950 / 1000 ))
-sleep 3
-shot 3-reproductor
+node reproductor-musica/tests/android-e2e.js play
 adb shell input keyevent KEYCODE_HOME
 sleep 15
 adb shell dumpsys media_session > $OUT/media_session.txt
@@ -46,6 +43,12 @@ adb logcat -d | grep -c "REP accion siguiente" > /tmp/n1
 adb shell input keyevent KEYCODE_HEADSETHOOK KEYCODE_HEADSETHOOK KEYCODE_HEADSETHOOK
 sleep 4
 adb shell dumpsys appwidget > $OUT/widgets.txt
+# Prueba de extremo a extremo: carpeta WhatsApp y borrado real
+adb shell am start -W -n $PKG/.MainActivity; sleep 5
+node reproductor-musica/tests/android-e2e.js
+sleep 2
+adb shell content query --uri content://media/external/audio/media --projection title > $OUT/mediastore-final.txt
+
 adb shell dumpsys activity services $PKG > $OUT/servicios.txt
 adb shell cmd statusbar expand-notifications; sleep 3
 shot 4-segundo-plano-notificacion
@@ -65,6 +68,8 @@ grep -E "REP|Capacitor/Console|FATAL|ActivityManager.*qsentry|ActivityTaskManage
   grep -q "REP crossfade" $OUT/logcat.txt && echo "OK transición suave entre canciones" || echo "FALLO transición"
   grep -q "REP viz-error" $OUT/logcat.txt && echo "FALLO visualizador" || echo "OK visualizador sin errores"
   grep -q "REP widget ok" $OUT/logcat.txt && grep -q "com.qsentry.reproductor/com.qsentry.reproductor.PlayerWidget" $OUT/widgets.txt && echo "OK widget registrado y actualizándose" || echo "REVISAR widget"
+  cat $OUT/e2e.txt 2>/dev/null
+  if [ -f /tmp/deleted-title.txt ]; then T=$(cat /tmp/deleted-title.txt); grep -q "title=$T" $OUT/mediastore-final.txt && echo "FALLO el archivo sigue en el teléfono" || echo "OK el archivo ya no existe en el teléfono ($T)"; fi
   grep -q "FATAL EXCEPTION" $OUT/logcat-completo.txt && echo "FALLO crash detectado" || echo "OK sin crashes"
 } | tee $OUT/RESUMEN.txt
 rm -f $OUT/logcat-completo.txt

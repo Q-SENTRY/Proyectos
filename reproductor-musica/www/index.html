@@ -256,6 +256,10 @@ h1{font-size:34px;letter-spacing:-.035em}
 .colors button.brand{background:linear-gradient(135deg,#FF9A5A,#EE4D7B 50%,#6F5BF5)}
 .toast{background:color-mix(in srgb,var(--fg) 92%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
 .lhead .ac{border-radius:20px}
+.folder.wa{background:linear-gradient(150deg,#5be38a,#1fae5b)!important;color:#fff}
+.folder.wa .fi{background:rgba(255,255,255,.25)}.folder.wa small{opacity:.85}
+.hint{font-size:13px;color:var(--mute);background:var(--soft);border-radius:12px;padding:10px 12px;margin-bottom:8px}
+.row button.danger-btn{background:#e0453a!important;color:#fff}
 /* Animaciones */
 @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 @keyframes pop{0%{opacity:0;transform:scale(.85)}70%{transform:scale(1.03)}100%{opacity:1;transform:none}}
@@ -408,6 +412,17 @@ let queue = [], qi = -1, current = null, blobUrls = new Map();
 let shuffle = false, repeat = false, view = null, query = '';
 
 const folderOf = id => folders.find(f => f.id === id);
+/* WhatsApp: audios en carpetas de WhatsApp, archivos AUD-…-WA0001, o del teléfono con duración 0:00 */
+const ICON_WA = '<svg viewBox="0 0 24 24"><path d="M20 11.5a8.5 8.5 0 0 1-12.6 7.4L3.5 20l1.2-3.7A8.5 8.5 0 1 1 20 11.5z"/><path d="M9 8.5c0 3 2.5 6.5 6 6.5l1-1.5-2-1-1 .8c-1-.4-2-1.4-2.4-2.4l.8-1-1-2z" stroke-width="1.3"/></svg>';
+function isWA(s){
+  if (s.waKeep) return false;
+  if (/whatsapp/i.test(s.path || '')) return true;
+  if (/(^|[-_ ])(AUD|PTT)-\d{8}-WA\d+/i.test(s.file || s.title || '')) return true;
+  if (s.uri && (!s.duration || s.duration < 1000)) return true;
+  return false;
+}
+const lib = () => songs.filter(s => !s.wa);
+const waSongs = () => songs.filter(s => s.wa);
 const songFolders = s => (s.folders || []).map(folderOf).filter(Boolean);
 const urlFor = s => {
   if (s.uri) return window.Capacitor.convertFileSrc(s.uri);
@@ -454,7 +469,7 @@ function searchResults(){
 }
 function albumsList(){
   const m = new Map();
-  for (const s of songs) {
+  for (const s of lib()) {
     if (!s.album) continue;
     const k = s.album + '\u0000' + (s.albumArtist || '');
     if (!m.has(k)) m.set(k, {key:k, name:s.album, songs:[]});
@@ -465,10 +480,11 @@ function albumsList(){
 }
 function viewSongs(v){
   if (!v) return [];
-  if (v.type === 'all') return sorted(songs);
+  if (v.type === 'all') return sorted(lib());
+  if (v.type === 'wa') return waSongs().sort((a,b) => b.added - a.added);
   if (v.type === 'folder') return sorted(songs.filter(s => (s.folders||[]).includes(v.id)));
-  if (v.type === 'artist') return sorted(songs.filter(s => s.artist === v.id));
-  if (v.type === 'album') return songs.filter(s => s.album === v.id).sort((a,b) => (a.track||0)-(b.track||0) || a.title.localeCompare(b.title,'es'));
+  if (v.type === 'artist') return sorted(lib().filter(s => s.artist === v.id));
+  if (v.type === 'album') return lib().filter(s => s.album === v.id).sort((a,b) => (a.track||0)-(b.track||0) || a.title.localeCompare(b.title,'es'));
   return [];
 }
 
@@ -489,10 +505,10 @@ const emptyBox = msg => `<div class="empty">${ICON_NOTE}<div>${msg}</div><button
 function render(){
   const h = new Date().getHours();
   $('hello').textContent = h < 6 ? 'Buenas noches' : h < 12 ? 'Buenos días' : h < 20 ? 'Buenas tardes' : 'Buenas noches';
-  $('stats').textContent = `${songs.length} ${songs.length===1?'canción':'canciones'} · ${folders.length} ${folders.length===1?'carpeta':'carpetas'}`;
+  $('stats').textContent = `${lib().length} ${lib().length===1?'canción':'canciones'} · ${folders.length} ${folders.length===1?'carpeta':'carpetas'}`;
   // Artistas
   const byArtist = {};
-  songs.forEach(s => { if (s.artist !== UNKNOWN_ARTIST) (byArtist[s.artist] = byArtist[s.artist] || []).push(s); });
+  lib().forEach(s => { if (s.artist !== UNKNOWN_ARTIST) (byArtist[s.artist] = byArtist[s.artist] || []).push(s); });
   const arts = Object.keys(byArtist).sort((a,b) => byArtist[b].length - byArtist[a].length).slice(0, 20);
   $('artistBox').style.display = arts.length > 1 ? '' : 'none';
   $('artists').innerHTML = arts.map((a,i) => { const img = (byArtist[a].find(s => s.art)||{}).art;
@@ -503,14 +519,15 @@ function render(){
   $('albums').innerHTML = albs.slice(0, 30).map((a,i) => `<button class="album" data-album="${esc(a.name)}" style="--i:${i}"><div class="ac" style="background:${colorOf(a.name)}">${a.art?`<img src="${a.art}" alt="">`:esc(firstChar(a.name))}</div><b>${esc(a.name)}</b><small>${esc(a.artist)} · ${a.songs.length}</small></button>`).join('');
   // Carpetas
   $('folders').innerHTML =
-    `<button class="folder" data-folder="__all" style="background:#d9d6cf"><div class="fi">${ICON_NOTE}</div><div><b>Todas</b><small>${songs.length} canciones</small></div></button>` +
+    `<button class="folder" data-folder="__all" style="background:#d9d6cf"><div class="fi">${ICON_NOTE}</div><div><b>Todas</b><small>${lib().length} canciones</small></div></button>` +
+    (waSongs().length ? `<button class="folder wa" data-folder="__wa" style="--i:1"><div class="fi">${ICON_WA}</div><div><b>WhatsApp</b><small>${waSongs().length} audios</small></div></button>` : '') +
     folders.map((f,i) => `<button class="folder" data-folder="${f.id}" style="background:${f.color};--i:${i+1}"><div class="fi">${ICON_FOLDER}</div><div><b>${esc(f.name)}</b><small>${viewSongs({type:'folder',id:f.id}).length} canciones</small></div></button>`).join('') +
     `<button class="folder new" id="newFolder" style="--i:${folders.length+1}"><div class="fi"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></div><b style="font-size:14px">Nueva carpeta</b></button>`;
   // Canciones
   document.querySelectorAll('#sort button').forEach(b => b.classList.toggle('sel', b.dataset.s === settings.sort));
   $('browse').style.display = query ? 'none' : '';
   $('sort').style.display = query ? 'none' : '';
-  const list = query ? searchResults() : sorted(songs);
+  const list = query ? searchResults() : sorted(lib());
   $('recentLabel').textContent = query ? `Resultados (${list.length})` : `Canciones (${list.length})`;
   $('allSongs').innerHTML = list.length ? list.map((s,i)=>songRow(s,i)).join('') : (query ? '<div class="empty">Sin resultados para “'+esc(query)+'”</div>' : emptyBox('Aún no tienes música'));
   if (view) renderList();
@@ -520,18 +537,20 @@ function renderList(){
   const v = view, list = viewSongs(v);
   let name = '', kind = '', art = null, color = '#d9d6cf', ini = '♪';
   if (v.type === 'all') { name = 'Todas'; kind = 'Biblioteca'; }
+  if (v.type === 'wa') { name = 'WhatsApp'; kind = 'Carpeta automática'; color = '#25d366'; }
   if (v.type === 'folder') { const f = folderOf(v.id); if (!f) return closeList(); name = f.name; kind = 'Carpeta'; color = f.color; }
   if (v.type === 'artist') { name = v.id; kind = 'Artista'; color = colorOf(v.id); }
   if (v.type === 'album') { name = v.id; kind = 'Álbum' + (list[0] ? ' · ' + list[0].artist : ''); color = colorOf(v.id); }
   art = (list.find(s => s.art)||{}).art;
-  ini = v.type === 'folder' || v.type === 'all' ? '' : firstChar(name);
+  ini = v.type === 'folder' || v.type === 'all' || v.type === 'wa' ? '' : firstChar(name);
   $('lArt').style.background = color;
-  $('lArt').innerHTML = art ? `<img src="${art}" alt="">` : (ini ? esc(ini) : (v.type === 'all' ? ICON_NOTE : ICON_FOLDER));
+  $('lArt').innerHTML = art ? `<img src="${art}" alt="">` : (ini ? esc(ini) : (v.type === 'all' ? ICON_NOTE : v.type === 'wa' ? ICON_WA : ICON_FOLDER));
   $('lName').textContent = name; $('lKind').textContent = kind;
   const total = list.reduce((t,s) => t + (s.duration||0), 0);
   $('lStats').textContent = `${list.length} ${list.length===1?'canción':'canciones'}${total ? ' · ' + Math.max(1, Math.round(total/60000)) + ' min' : ''}`;
-  $('listMore').style.visibility = v.type === 'folder' ? 'visible' : 'hidden';
+  $('listMore').style.visibility = v.type === 'folder' || v.type === 'wa' ? 'visible' : 'hidden';
   $('lSongs').innerHTML = list.length ? list.map((s,i)=>songRow(s,i)).join('') : (v.type === 'folder' ? emptyBox('Esta carpeta está vacía') : '<div class="empty">Sin canciones</div>');
+  if (v.type === 'wa' && list.length) $('lSongs').insertAdjacentHTML('afterbegin', '<p class="hint">Audios de WhatsApp y archivos sin duración. Se apartan de tu biblioteca para que no se mezclen con tu música.</p>');
 }
 
 /* ---------- Colores de la carátula ---------- */
@@ -602,7 +621,7 @@ document.addEventListener('click', e => {
   if (e.target.closest('[data-add]')) return pickFiles(view && view.type === 'folder' ? view.id : null);
   if (e.target.closest('#newFolder')) return folderSheet();
   const fo = e.target.closest('[data-folder]');
-  if (fo) return openList(fo.dataset.folder === '__all' ? {type:'all'} : {type:'folder', id:fo.dataset.folder});
+  if (fo) return openList(fo.dataset.folder === '__all' ? {type:'all'} : fo.dataset.folder === '__wa' ? {type:'wa'} : {type:'folder', id:fo.dataset.folder});
   const ar = e.target.closest('[data-artist]');
   if (ar) return openList({type:'artist', id:ar.dataset.artist});
   const al = e.target.closest('[data-album]');
@@ -611,7 +630,7 @@ document.addEventListener('click', e => {
   if (so) { settings.sort = so.dataset.s; saveSettings(); render(); animate($('vHome')); return; }
   const row = e.target.closest('.song');
   if (row) {
-    const ctx = row.closest('#lSongs') ? viewSongs(view) : (query ? searchResults() : sorted(songs));
+    const ctx = row.closest('#lSongs') ? viewSongs(view) : (query ? searchResults() : sorted(lib()));
     playList(ctx, ctx.findIndex(s => s.id === row.dataset.id), false, row.closest('#lSongs') ? $('lName').textContent : (query ? 'Búsqueda' : 'Biblioteca'));
   }
 });
@@ -629,7 +648,8 @@ $('addHome').onclick = () => pickFiles(null);
 $('file').onchange = async e => {
   const files = [...e.target.files]; e.target.value = '';
   for (const f of files) {
-    const s = {id:uid(), ...parse(f.name), album:'', blob:f, folders:addTarget ? [addTarget] : [], added:Date.now()};
+    const s = {id:uid(), ...parse(f.name), file:f.name, album:'', blob:f, folders:addTarget ? [addTarget] : [], added:Date.now()};
+    s.wa = isWA(s);
     await put('songs', s); songs.push(s);
   }
   render();
@@ -693,7 +713,9 @@ function songSheet(s){
     ${s.album ? `<button class="opt" data-a="album"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="12" cy="12" r="3"/></svg>Ir al álbum</button>` : ''}
     ${s.artist !== UNKNOWN_ARTIST ? `<button class="opt" data-a="artist"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Ir al artista</button>` : ''}
     <button class="opt" data-a="edit"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>Editar datos y carátula</button>
-    <button class="opt danger" data-a="del"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>${s.uri ? 'Ocultar de la biblioteca' : 'Eliminar de la biblioteca'}</button>`);
+    ${s.wa ? `<button class="opt" data-a="unwa">${ICON_NOTE}Mover a mi biblioteca</button>` : ''}
+    ${s.uri ? `<button class="opt" data-a="del"><svg viewBox="0 0 24 24"><path d="M3 3l18 18M10.6 5.1A10 10 0 0 1 22 12a14 14 0 0 1-3 3.8M6.6 6.6A14 14 0 0 0 2 12s3.5 7 10 7a9.7 9.7 0 0 0 5.4-1.6"/></svg>Ocultar de la biblioteca</button>` : ''}
+    <button class="opt danger" data-a="${s.uri ? 'rmphone' : 'del'}"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>${s.uri ? 'Eliminar del teléfono' : 'Eliminar de la biblioteca'}</button>`);
   $('sheet').onclick = async e => {
     const b = e.target.closest('[data-a]'); if (!b) return;
     const a = b.dataset.a;
@@ -708,6 +730,8 @@ function songSheet(s){
     if (a === 'album') { closeSheet(); closePlayer(); openList({type:'album', id:s.album}); }
     if (a === 'artist') { closeSheet(); closePlayer(); openList({type:'artist', id:s.artist}); }
     if (a === 'edit') editSheet(s);
+    if (a === 'unwa') { s.wa = false; s.waKeep = true; await put('songs', s); closeSheet(); render(); toast('Movida a tu biblioteca'); }
+    if (a === 'rmphone') confirmDelete([s]);
     if (a === 'del') {
       if (s.uri) { s.hidden = true; hiddenIds.add(s.id); await put('songs', s); } else await del('songs', s.id);
       songs = songs.filter(x => x.id !== s.id);
@@ -759,13 +783,59 @@ function resizeImage(file, size){
   });
 }
 
+/* ---------- Eliminar del teléfono ---------- */
+function confirmDelete(list){
+  if (!list.length) return;
+  const one = list.length === 1;
+  openSheet(`<h3>${one ? '¿Eliminar del teléfono?' : `¿Eliminar ${list.length} archivos del teléfono?`}</h3>
+    <p>${one ? '“' + esc(list[0].title) + '” se borrará de tu teléfono.' : 'Se borrarán de tu teléfono.'} No se puede deshacer.${Lib && list.some(s => s.uri) ? ' Android te pedirá confirmar.' : ''}</p>
+    ${list.slice(0, 5).map(s => `<div class="song" style="pointer-events:none"><div class="art" style="background:${songColor(s)}">${artHTML(s)}</div><div class="info"><div class="t">${esc(s.title)}</div><div class="a">${esc(s.artist)} · ${fmtMs(s.duration) || '0:00'}</div></div></div>`).join('')}
+    ${list.length > 5 ? `<p>y ${list.length - 5} más…</p>` : ''}
+    <div class="row" style="margin-top:12px"><button id="sCancel">Cancelar</button><button class="pri danger-btn" id="sOk">Eliminar</button></div>`);
+  $('sCancel').onclick = closeSheet;
+  $('sOk').onclick = () => { closeSheet(); deleteFromPhone(list); };
+}
+async function deleteFromPhone(list){
+  const dev = list.filter(s => s.uri), local = list.filter(s => !s.uri);
+  let gone = [...local];
+  if (dev.length) {
+    if (!Lib) return toast('Solo disponible en la app de Android');
+    try {
+      const r = await Lib.deleteFiles({uris: dev.map(s => s.uri)});
+      console.log('REP delete ' + (r.deleted ? 'ok ' + dev.length : 'cancelado'));
+      if (r.deleted) gone.push(...dev); else if (!local.length) return toast('No se eliminó nada');
+    } catch (e) { console.log('REP delete-error ' + e.message); return toast('No se pudo eliminar'); }
+  }
+  const ids = new Set(gone.map(s => s.id));
+  for (const s of gone) await del('songs', s.id);
+  songs = songs.filter(s => !ids.has(s.id));
+  if (current && ids.has(current.id)) { stopAll(); current = null; renderNow(); }
+  queue = queue.filter(s => !ids.has(s.id)); if (current) qi = queue.findIndex(s => s.id === current.id);
+  render();
+  if (view && view.type === 'wa' && !waSongs().length) closeList();
+  toast(gone.length === 1 ? 'Eliminada del teléfono' : `${gone.length} archivos eliminados`);
+}
+
 function listActions(){
+  if (view && view.type === 'wa') {
+    const list = waSongs(), dev = list.filter(s => s.uri);
+    openSheet(`<h3>WhatsApp</h3><p>${list.length} audios</p>
+      <button class="opt" data-a="unwa">${ICON_NOTE}Mover todos a mi biblioteca</button>
+      ${dev.length ? `<button class="opt danger" data-a="rmall"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>Eliminar todos del teléfono (${dev.length})</button>` : ''}`);
+    $('sheet').onclick = async e => {
+      const b = e.target.closest('[data-a]'); if (!b) return;
+      if (b.dataset.a === 'unwa') { for (const s of list) { s.wa = false; s.waKeep = true; await put('songs', s); } closeSheet(); closeList(); toast('Movidos a tu biblioteca'); }
+      if (b.dataset.a === 'rmall') confirmDelete(dev);
+    };
+    return;
+  }
   if (!view || view.type !== 'folder') return;
   const f = folderOf(view.id); if (!f) return;
   openSheet(`<h3>${esc(f.name)}</h3><p>${viewSongs(view).length} canciones</p>
     <button class="opt" data-a="pick"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Elegir de la biblioteca</button>
     <button class="opt" data-a="add"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Añadir archivos del teléfono</button>
     <button class="opt" data-a="edit"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>Editar nombre y color</button>
+    ${viewSongs(view).some(s => s.uri) ? `<button class="opt danger" data-a="rmall"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>Eliminar sus canciones del teléfono</button>` : ''}
     <button class="opt danger" data-a="del"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>Eliminar carpeta</button>`);
   $('sheet').onclick = async e => {
     const b = e.target.closest('[data-a]'); if (!b) return;
@@ -773,6 +843,7 @@ function listActions(){
     if (a === 'add') { closeSheet(); pickFiles(f.id); }
     if (a === 'edit') folderSheet(f);
     if (a === 'pick') pickSheet(f);
+    if (a === 'rmall') confirmDelete(viewSongs(view).filter(s => s.uri));
     if (a === 'del') {
       for (const s of songs.filter(s => (s.folders||[]).includes(f.id))) { s.folders = s.folders.filter(x => x !== f.id); await put('songs', s); }
       await del('folders', f.id); folders = folders.filter(x => x.id !== f.id);
@@ -932,7 +1003,7 @@ function load(autoplay, crossfade){
   dir = 0;
   native.meta(current); updateWidget(); saveResume();
 }
-function toggle(){ if (!current) return songs.length ? playList(sorted(songs),0) : pickFiles(null); el().paused ? el().play() : el().pause(); }
+function toggle(){ if (!current) return lib().length ? playList(sorted(lib()),0) : pickFiles(null); el().paused ? el().play() : el().pause(); }
 function nextIndex(){
   if (!queue.length) return -1;
   if (shuffle && queue.length > 1) { let n; do n = Math.floor(Math.random()*queue.length); while (n === qi); return n; }
@@ -1176,13 +1247,18 @@ async function scanDevice(interactive){
     for (const [id, d] of found) {
       if (hiddenIds.has(id)) continue;
       const ex = songs.find(s => s.id === id);
-      if (ex) { if (ex.uri !== d.uri) { ex.uri = d.uri; await put('songs', ex); } continue; }
-      const s = {id, title:d.title || 'Sin título', artist:d.artist || UNKNOWN_ARTIST, album:d.album && d.album !== 'Music' && d.album !== 'Download' ? d.album : '', albumId:d.albumId, track:d.track||0, duration:d.duration, uri:d.uri, folders:[], added:(d.added||0)*1000};
+      if (ex) {
+        const wa = isWA({...ex, path:d.path, file:d.file, duration:d.duration});
+        if (ex.uri !== d.uri || ex.path !== d.path || ex.wa !== wa) { Object.assign(ex, {uri:d.uri, path:d.path, file:d.file, duration:d.duration, wa}); await put('songs', ex); }
+        continue;
+      }
+      const s = {id, title:d.title || 'Sin título', artist:d.artist || UNKNOWN_ARTIST, album:d.album && d.album !== 'Music' && d.album !== 'Download' ? d.album : '', albumId:d.albumId, track:d.track||0, duration:d.duration, uri:d.uri, path:d.path||'', file:d.file||'', folders:[], added:(d.added||0)*1000};
+      s.wa = isWA(s);
       await put('songs', s); songs.push(s); added++;
     }
     for (const s of songs.filter(s => s.uri && !found.has(s.id))) await del('songs', s.id);
     songs = songs.filter(s => !s.uri || found.has(s.id));
-    console.log('REP scan ' + found.size + ' canciones, nuevas ' + added);
+    console.log('REP scan ' + found.size + ' canciones, nuevas ' + added + ', whatsapp ' + waSongs().length);
     ls.set('scanned', 1);
     render(); animate($('vHome'));
     if (interactive || added) toast(added ? `${added} ${added===1?'canción encontrada':'canciones encontradas'}` : 'Tu biblioteca está al día');
@@ -1223,7 +1299,12 @@ async function loadArtworks(){
   try {
     db = await openDB();
     let list; [list, folders] = await Promise.all([all('songs'), all('folders')]);
-    for (const s of list) { if (!s.folders) { s.folders = s.folder ? [s.folder] : []; delete s.folder; await put('songs', s); } }
+    for (const s of list) {
+      let ch = false;
+      if (!s.folders) { s.folders = s.folder ? [s.folder] : []; delete s.folder; ch = true; }
+      const wa = isWA(s); if (s.wa !== wa) { s.wa = wa; ch = true; }
+      if (ch) await put('songs', s);
+    }
     hiddenIds = new Set(list.filter(s => s.hidden).map(s => s.id));
     songs = list.filter(s => !s.hidden);
     folders.sort((a,b)=>a.created-b.created);
